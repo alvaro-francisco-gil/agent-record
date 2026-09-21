@@ -167,20 +167,34 @@ So prove both directions, before the first commit:
 git add <an ordinary file>
 sh .githooks/pre-commit && echo "pass path OK"
 
-# 2. It blocks. Use a throwaway that matches one forbidden pattern.
+# 2. The path rule bites. Use a throwaway that matches one forbidden pattern.
 mkdir -p <forbidden dir> && echo placeholder > "<forbidden dir>/probe file.txt"
 git add -f "<forbidden dir>/probe file.txt"
 sh .githooks/pre-commit || echo "block path OK"
-git rm --cached -q "<forbidden dir>/probe file.txt" && rm -r <forbidden dir>
+git rm --cached -qf "<forbidden dir>/probe file.txt" && rm -r "<forbidden dir>"
+
+# 3. The content rule bites. A fabricated value of the declared shape, never a real one.
+printf 'account 1234567890123456\n' > "probe doc.md"
+git add "probe doc.md"
+sh .githooks/pre-commit || echo "content block OK"
+git rm --cached -qf "probe doc.md" && rm -f "probe doc.md"
 ```
 
-**Both lines must print.** Silence on the first means the script is broken. Silence on the
-second means the rule matches nothing — which looks exactly like a working hook.
+**All three lines must print.** Silence on the first means the script is broken. Silence on
+the second or third means that rule matches nothing — which looks exactly like a working
+hook.
 
-The probe name carries a space on purpose. Received documents are named
-`Contract Signed 2024.pdf`, and a hook that word-splits its file list waves through exactly
-the class of file it exists to stop. The shipped loops read one path at a time; if you
-rewrite them, keep this probe.
+Step 3 is the one people skip, and it is the one that fails quietly. An unfilled
+`<FORBIDDEN_PATTERNS>` is a syntax error and step 1 catches it; an unfilled
+`<CONTENT_PATTERNS>` parses, is non-empty, and matches nothing for the rest of the repo's
+life. **If the repo declared no content rules, check that the placeholder was replaced with
+an empty string** rather than left as `<CONTENT_PATTERNS>`, and skip step 3.
+
+The probe names carry a space on purpose. Received documents are named
+`Contract Signed 2024.pdf` and `Contrato Firmado Año.pdf`, and a hook that word-splits its
+file list, or that lets git C-quote a non-ASCII path, waves through exactly the class of
+file it exists to stop. The shipped version reads one path at a time and turns
+`core.quotePath` off; if you rewrite the loops, keep these probes and add an accented one.
 
 Then check the three ways an installed hook is still not installed:
 
@@ -198,9 +212,16 @@ committed.
 
 ### A hook is not a guarantee
 
-It catches the careless case: the file dragged into the wrong directory, the paste that
-still has an account number in it, the binary nobody looked at. It does not catch a
-determined one. `--no-verify` exists, pattern lists are never complete, and committing is
+**Start with the way it is most often absent: `core.hooksPath` is local config, and local
+config is never committed.** The hook script is in the repo; the setting that makes git run
+it is not. A fresh clone — the same person's second machine, a collaborator, a CI checkout —
+has no perimeter check at all until someone runs `git config core.hooksPath .githooks`
+again. Say so in the agents file, where the next clone will read it, and treat it as part of
+the setup rather than a footnote.
+
+Beyond that, it catches the careless case: the file dragged into the wrong directory, the
+paste that still has an account number in it, the binary nobody looked at. It does not catch
+a determined one. `--no-verify` exists, pattern lists are never complete, and committing is
 not the only way material leaves a machine — a file attached to an email or a directory
 opened on a shared screen is outside its reach entirely.
 
@@ -234,7 +255,10 @@ Then, in order:
    its level of formality. The template is a source of content, not of prose.
 5. **Run the checker over the existing tree before the hook goes in.** Expect failures that
    pre-date you. Fix the malformed markers; leave the open ones alone, because they are the
-   worklist.
+   worklist. **Check `git config core.hooksPath` before assuming the hook is live**: an
+   existing repo may already point somewhere else, and every other clone of it has no
+   perimeter check until that setting is made there too. Tell whoever else works in the repo,
+   in the same message that tells them the perimeter exists.
 6. **Do not reorganise.** Existing files stay where they are. Write the routing table that
    describes where things actually live, and move things later, in their own commits, if at
    all.

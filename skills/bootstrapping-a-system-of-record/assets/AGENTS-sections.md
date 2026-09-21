@@ -7,9 +7,15 @@ any section the repo genuinely does not need, and rewrite the prose in the
 repo's own voice - it is owned by the repo from the first commit, not by the
 skill that wrote it.
 
-Two strings are not yours to edit: `<!-- record:routing -->` and
-`<!-- record:perimeter -->`. scripts/record-check.py looks for them by exact
-text, and a reworded anchor fails silently.
+Two comments in this file are not yours to edit: the record:routing anchor above
+the routing table, and the record:perimeter anchor above the perimeter section.
+scripts/record-check.py looks for them by exact text, so a reworded anchor is not
+found and the checker fails.
+
+They are deliberately named without their delimiters here. The checker tests
+whether the file contains each anchor anywhere, so a copy of this block left in
+place would satisfy it on its own - and the file would pass with the routing
+table and the perimeter section deleted outright.
 
 Retrofitting a repo that already has an agents file: do NOT paste this over it.
 Read what is there, add the anchors and only the sections that are missing, and
@@ -117,6 +123,14 @@ forbidden content patterns, oversized files. **Never bypass it with
 `--no-verify`.** If it blocks something legitimate, change the rule in its own
 commit. It catches the careless case, not a determined one; the perimeter is a
 decision, and the hook is only a reminder of it.
+
+**A fresh clone has no hook.** `core.hooksPath` is local config and is never
+committed, so run this once per clone, on every machine and for everyone who
+works here:
+
+```bash
+git config core.hooksPath .githooks
+```
 
 **Git history is permanent.** A file committed and later deleted remains in the
 history, and a repo that is private today may not be later. Treat every commit as
