@@ -168,14 +168,19 @@ git add <an ordinary file>
 sh .githooks/pre-commit && echo "pass path OK"
 
 # 2. It blocks. Use a throwaway that matches one forbidden pattern.
-mkdir -p <forbidden dir> && echo placeholder > <forbidden dir>/probe.txt
-git add -f <forbidden dir>/probe.txt
+mkdir -p <forbidden dir> && echo placeholder > "<forbidden dir>/probe file.txt"
+git add -f "<forbidden dir>/probe file.txt"
 sh .githooks/pre-commit || echo "block path OK"
-git rm --cached -q <forbidden dir>/probe.txt && rm -r <forbidden dir>
+git rm --cached -q "<forbidden dir>/probe file.txt" && rm -r <forbidden dir>
 ```
 
 **Both lines must print.** Silence on the first means the script is broken. Silence on the
 second means the rule matches nothing — which looks exactly like a working hook.
+
+The probe name carries a space on purpose. Received documents are named
+`Contract Signed 2024.pdf`, and a hook that word-splits its file list waves through exactly
+the class of file it exists to stop. The shipped loops read one path at a time; if you
+rewrite them, keep this probe.
 
 Then check the three ways an installed hook is still not installed:
 
@@ -184,7 +189,8 @@ Then check the three ways an installed hook is still not installed:
   without a word.
 - `case` patterns match the whole path string, not a path segment. `private/*` catches
   `private/x` and misses `a/private/x`; `*private/*` catches both. `*.key` matches at any
-  depth.
+  depth. A pattern that itself contains a space has to be quoted — `"personal notes/"*` —
+  or the `case` arm is a syntax error, which is what step 1 above is for.
 
 **Never probe a content pattern with real sensitive material.** Use a fabricated value of
 the same shape. A probe file that matches is a file you then have to be certain never got
