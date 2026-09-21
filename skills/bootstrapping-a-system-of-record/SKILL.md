@@ -160,21 +160,22 @@ shell, so the script dies; filled carelessly, it runs and matches nothing. **A d
 the worst outcome of this whole procedure** — the human believes they are protected and is
 not, and they find out from the history.
 
-So prove both directions, before the first commit:
+So prove that it runs, and that each rule bites, before the first commit. Every placeholder
+below is quoted, because a real one of them contains a space sooner or later:
 
 ```bash
 # 1. It runs, and it lets an ordinary file through.
-git add <an ordinary file>
+git add "<an ordinary file>"
 sh .githooks/pre-commit && echo "pass path OK"
 
 # 2. The path rule bites. Use a throwaway that matches one forbidden pattern.
-mkdir -p <forbidden dir> && echo placeholder > "<forbidden dir>/probe file.txt"
+mkdir -p "<forbidden dir>" && echo placeholder > "<forbidden dir>/probe file.txt"
 git add -f "<forbidden dir>/probe file.txt"
 sh .githooks/pre-commit || echo "block path OK"
 git rm --cached -qf "<forbidden dir>/probe file.txt" && rm -r "<forbidden dir>"
 
-# 3. The content rule bites. A fabricated value of the declared shape, never a real one.
-printf 'account 1234567890123456\n' > "probe doc.md"
+# 3. The content rule bites. Fabricate the value; never probe with real material.
+printf '<FABRICATED VALUE MATCHING THE DECLARED PATTERN>\n' > "probe doc.md"
 git add "probe doc.md"
 sh .githooks/pre-commit || echo "content block OK"
 git rm --cached -qf "probe doc.md" && rm -f "probe doc.md"
@@ -189,6 +190,12 @@ Step 3 is the one people skip, and it is the one that fails quietly. An unfilled
 `<CONTENT_PATTERNS>` parses, is non-empty, and matches nothing for the rest of the repo's
 life. **If the repo declared no content rules, check that the placeholder was replaced with
 an empty string** rather than left as `<CONTENT_PATTERNS>`, and skip step 3.
+
+**Build the probe value from the pattern this repo declared**, not from a generic one. A run
+of sixteen digits proves nothing against a rule written for an IBAN or a key prefix: the
+hook stays silent, and silence at step 3 is indistinguishable from the broken case it exists
+to detect. A step that cries wolf is a step that gets skipped, and this is the step nobody
+can afford to skip.
 
 The probe names carry a space on purpose. Received documents are named
 `Contract Signed 2024.pdf` and `Contrato Firmado Año.pdf`, and a hook that word-splits its
