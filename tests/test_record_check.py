@@ -162,3 +162,27 @@ def test_main_honours_a_custom_agents_file(tmp_path, capsys, monkeypatch):
     (tmp_path / "CLAUDE.md").write_text(ANCHORED, encoding="utf-8")
     assert _run(monkeypatch, tmp_path, "--agents-file", "CLAUDE.md") == 0
     assert "anchors present" in capsys.readouterr().out
+
+
+def test_a_marker_inside_a_code_span_is_not_a_marker(tmp_path):
+    # Any repo that documents its own convention writes `[unknown:]` in prose.
+    # Counting that is a check firing on a healthy record, which is the one
+    # thing this checker must never do.
+    root = _repo(tmp_path, **{"doc.md": "Open questions use `[unknown:]` markers.\n"})
+    errors, worklist = record_check.check(root)
+    assert errors == []
+    assert worklist == []
+
+
+def test_a_marker_inside_a_fenced_block_is_not_a_marker(tmp_path):
+    root = _repo(tmp_path, **{"doc.md": "Syntax:\n\n```\n[unknown: <question>]\n[inferred]\n```\n"})
+    errors, worklist = record_check.check(root)
+    assert errors == []
+    assert worklist == []
+
+
+def test_a_real_marker_beside_a_code_span_still_counts(tmp_path):
+    root = _repo(tmp_path, **{"doc.md": "Use `[unknown:]` like this: [unknown: what rate?]\n"})
+    errors, worklist = record_check.check(root)
+    assert errors == []
+    assert any("what rate?" in w for w in worklist)

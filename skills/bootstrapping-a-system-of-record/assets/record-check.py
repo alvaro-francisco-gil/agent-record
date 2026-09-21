@@ -16,6 +16,8 @@
 import argparse, pathlib, re, sys
 
 SKIP = {".git", "node_modules", ".venv", "venv", "__pycache__"}
+FENCE = re.compile(r"\s*(```|~~~)")
+SPAN = re.compile(r"`[^`]*`")
 
 
 def check(root, inferred="inferred", unknown="unknown", agents_file="AGENTS.md"):
@@ -45,7 +47,19 @@ def check(root, inferred="inferred", unknown="unknown", agents_file="AGENTS.md")
         # A received .md need not be UTF-8. An undecodable byte is not a marker
         # defect and must never be a traceback in somebody else's repo.
         body = path.read_text(encoding="utf-8", errors="replace")
+        fenced = False
         for n, line in enumerate(body.splitlines(), 1):
+            # A marker shown as an example is not a marker. Every repo that
+            # documents this convention writes the two words in prose, so
+            # counting them would fire the check on a healthy record - the one
+            # thing it must never do. Fenced blocks and `code spans` are quoted
+            # syntax, not open questions.
+            if FENCE.match(line):
+                fenced = not fenced
+                continue
+            if fenced:
+                continue
+            line = SPAN.sub("", line)
             if bare.search(line):
                 errors.append(f"{rel}:{n}: [{unknown}] carries no question")
             for question in good.findall(line):
