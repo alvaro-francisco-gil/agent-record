@@ -103,8 +103,11 @@ YAML frontmatter; the bootstrap skill's assets are one Python script, one shell 
 one Markdown template, none with third-party dependencies.
 
 > **Not yet verified in a live install.** Every manifest follows the shape a published
-> plugin uses and is checked by `scripts/validate.py`, but no tool has yet been observed
-> loading them from this marketplace. If one misbehaves, open an issue.
+> plugin uses, and `scripts/validate.py` checks that each one parses as JSON, that every
+> skill's frontmatter is loadable and names its own directory, and that the version has not
+> drifted apart across the four manifests that carry one — it does not check a manifest
+> against any schema. No tool has yet been observed loading them from this marketplace. If
+> one misbehaves, open an issue.
 
 ## What the tooling covers, and what it cannot
 
@@ -114,11 +117,15 @@ The bootstrap scaffolds two checks, and both are deliberately narrow.
 verifies that both anchors are present in the agents file. It never guesses what is
 sensitive, so it cannot fire on content, and it treats unresolved markers as the worklist
 rather than as failures. A bare `[unknown]` with no question is an error; forty open
-questions are not.
+questions are not. **It scans `*.md` and nothing else**, and it skips the agents file in the
+marker sweep because that file is where the two markers are defined — so a marker in a
+`.txt`, a `.csv`, a notebook or the agents file itself is invisible to it. Keep the record in
+Markdown, or widen the glob in your copy.
 
 `.githooks/pre-commit` — generated at bootstrap from the perimeter answers, because every
 perimeter rule depends on a layout only that repo has — refuses oversized files, forbidden
-paths and forbidden content patterns in the staged blobs. It catches the careless case, not
+paths and forbidden content patterns in the staged blobs, including a file that arrives at a
+forbidden path by being renamed into it. It catches the careless case, not
 a determined one. `core.hooksPath` is local config and is never committed, so a fresh clone
 has no perimeter check until someone sets it again on that machine.
 

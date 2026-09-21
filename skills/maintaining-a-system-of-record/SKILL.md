@@ -171,8 +171,13 @@ The rules on them:
   directories lists everything unconfirmed:
 
   ```bash
-  grep -rn "\[inferred\]\|\[unknown:" <record-dirs>
+  grep -rnE "\[inferred\]|\[unknown:" <record-dirs>
   ```
+
+  `-E` is not optional. In a basic regular expression `\|` is a GNU extension: BSD and
+  POSIX grep, which is what macOS ships, read the pattern as the literal text
+  `[inferred]|[unknown:` and match nothing — a health check that reports a clean record
+  because it is broken. Extended alternation is `|`, and it is portable.
 
   That command hard-codes the two words this file uses; a record kept in another language
   greps for its own pair.

@@ -72,6 +72,13 @@ substitute an invented example for the missing one.
 holding its own copy. **Never duplicate a `SKILL.md`** — a second copy is drift waiting to
 happen, which is the failure this packaging exists to prevent.
 
+**`GEMINI.md` is the second entry point, and it is the one that silently ships half the
+plugin.** `gemini-extension.json` names it as the context file, and it imports each skill by
+path with an `@` line — so a skill added to `skills/` and not added there reaches no Gemini
+user, and nothing fails to tell anyone. It shipped that way once. **When the set of skills
+changes, `GEMINI.md` changes in the same commit**, and it carries one `@` line per skill,
+always.
+
 The same applies to the rules themselves: they are stated in
 `maintaining-a-system-of-record` and referenced elsewhere. `README.md` restates them for a
 reader who has not installed anything, and that restatement is the one permitted copy — when

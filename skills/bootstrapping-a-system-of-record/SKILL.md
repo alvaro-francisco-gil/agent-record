@@ -134,6 +134,14 @@ point of the ordering.
    never guesses what is sensitive, so it cannot fire on content. Unresolved markers are the
    worklist, not a failure. Pass `--agents-file`, `--inferred-marker` and `--unknown-marker`
    if the repo's answers differ from the defaults.
+
+   **Say what it does not scan, because the answer is narrow.** It reads `*.md` and nothing
+   else — a marker in a `.txt`, a `.csv`, a notebook or a rendering is invisible to it — and
+   it skips the agents file in the marker sweep, reading it only for the two anchors. That
+   skip is deliberate: the agents file is where the two markers are *defined*, so without it
+   every freshly bootstrapped repo would open its worklist with two entries that are the
+   definitions rather than gaps. The cost is that a marker written in the agents file itself
+   is never listed, so put facts in sources, not in the instructions.
 4. **`.githooks/pre-commit`.** From `assets/pre-commit-perimeter.sh`, placeholders filled
    from question 3, then `chmod +x .githooks/pre-commit` and
    `git config core.hooksPath .githooks`. This is the repo-specific half, and it is
@@ -160,13 +168,15 @@ shell, so the script dies; filled carelessly, it runs and matches nothing. **A d
 the worst outcome of this whole procedure** — the human believes they are protected and is
 not, and they find out from the history.
 
-So prove that it runs, and that each rule bites, before the first commit. Every placeholder
-below is quoted, because a real one of them contains a space sooner or later:
+So prove that it runs, and that each rule bites, before the first commit — steps 1 to 3
+below. Step 4 needs something already committed, so it runs immediately after. Every
+placeholder is quoted, because a real one of them contains a space sooner or later:
 
 ```bash
 # 1. It runs, and it lets an ordinary file through.
 git add "<an ordinary file>"
 sh .githooks/pre-commit && echo "pass path OK"
+git rm --cached -qf "<an ordinary file>"
 
 # 2. The path rule bites. Use a throwaway that matches one forbidden pattern.
 mkdir -p "<forbidden dir>" && echo placeholder > "<forbidden dir>/probe file.txt"
@@ -179,11 +189,22 @@ printf '<FABRICATED VALUE MATCHING THE DECLARED PATTERN>\n' > "probe doc.md"
 git add "probe doc.md"
 sh .githooks/pre-commit || echo "content block OK"
 git rm --cached -qf "probe doc.md" && rm -f "probe doc.md"
+
+# 4. A rename into a forbidden path still bites. This is the careless case
+#    itself - the file dragged into the wrong directory - and it hides from a
+#    hook that lists only adds and modifications, because git reports a move as
+#    a rename. Needs one committed file to move.
+mkdir -p "<forbidden dir>"
+git mv "<an ordinary committed file>" "<forbidden dir>/probe file.md"
+sh .githooks/pre-commit || echo "block rename OK"
+git mv "<forbidden dir>/probe file.md" "<an ordinary committed file>" && rm -r "<forbidden dir>"
 ```
 
-**All three lines must print.** Silence on the first means the script is broken. Silence on
-the second or third means that rule matches nothing — which looks exactly like a working
-hook.
+**All four lines must print.** Silence on the first means the script is broken. Silence on
+any of the others means that rule matches nothing — which looks exactly like a working
+hook. Step 4 needs a file that is already committed, so run it after the first commit; if
+nothing is committed yet, note it and come back to it, because it is the only step that
+covers the way a file most often arrives somewhere it should not be.
 
 Step 3 is the one people skip, and it is the one that fails quietly. An unfilled
 `<FORBIDDEN_PATTERNS>` is a syntax error and step 1 catches it; an unfilled
@@ -202,6 +223,11 @@ The probe names carry a space on purpose. Received documents are named
 file list, or that lets git C-quote a non-ASCII path, waves through exactly the class of
 file it exists to stop. The shipped version reads one path at a time and turns
 `core.quotePath` off; if you rewrite the loops, keep these probes and add an accented one.
+
+Step 4 is there for the same reason and it is newer: the shipped version passes
+`--no-renames` and `--diff-filter=ACMRT`, so a moved file is listed as the add it really is.
+If you rewrite the `git diff --cached` line, keep both, and re-run step 4 — a filter that
+drops `R` blocks nothing and says nothing.
 
 Then check the three ways an installed hook is still not installed:
 
@@ -280,6 +306,7 @@ Then, in order:
 - The agents file carries both anchors, and `python3 scripts/record-check.py` exits 0.
 - The perimeter section names what never enters and where it lives instead.
 - The hook is executable, `core.hooksPath` points at it, and it has been seen to pass one
-  file and block another.
+  file and block another — including a file renamed into a forbidden path, which is the way
+  a file most often arrives in one.
 - Every routing destination exists.
 - The human has heard, in plain words, what the perimeter covers and what the hook cannot do.
