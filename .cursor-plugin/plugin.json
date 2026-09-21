@@ -1,7 +1,7 @@
 {
   "name": "system-of-record",
   "displayName": "System of record",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "A convention for repos that hold the authoritative record of something real: sources vs renderings, the evidence rule, the capture rule, greppable uncertainty markers, a fact-routing table, and a declared perimeter. Works whether the record is the whole repo or a layer inside a code repo.",
   "author": { "name": "Alvaro Francisco Gil" },
   "homepage": "https://github.com/alvaro-francisco-gil/agent-record",

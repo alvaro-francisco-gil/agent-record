@@ -102,12 +102,14 @@ directory into wherever your tool keeps skills. Each skill is a single Markdown 
 YAML frontmatter; the bootstrap skill's assets are one Python script, one shell script and
 one Markdown template, none with third-party dependencies.
 
-> **Not yet verified in a live install.** Every manifest follows the shape a published
-> plugin uses, and `scripts/validate.py` checks that each one parses as JSON, that every
-> skill's frontmatter is loadable and names its own directory, and that the version has not
-> drifted apart across the four manifests that carry one — it does not check a manifest
-> against any schema. No tool has yet been observed loading them from this marketplace. If
-> one misbehaves, open an issue.
+> **Verified in Claude Code; inferred elsewhere.** This marketplace has been added from
+> GitHub and the plugin installed from it, and `claude plugin details` reports both skills
+> in the component inventory. That is one tool. The Codex, Cursor and Gemini manifests
+> follow the shape a published plugin uses and `scripts/validate.py` checks that each one
+> parses as JSON, that every skill's frontmatter is loadable and names its own directory,
+> and that the version has not drifted across the four manifests that carry one — but it
+> does not check a manifest against any schema, and **no Codex, Cursor or Gemini install
+> has been observed.** If one misbehaves, open an issue.
 
 ## What the tooling covers, and what it cannot
 
