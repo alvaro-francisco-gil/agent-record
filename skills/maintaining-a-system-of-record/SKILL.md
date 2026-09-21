@@ -15,8 +15,8 @@ knows nothing about the person, business or project the code serves. Asked to wr
 a proposal, an invoice, a grant section or a methods paragraph, it writes something
 plausible: a number rounded to a rounder number, a metric nobody measured, a date that
 fits the story. The output reads well and is false, and it goes out under a human's name.
-**A record layer makes that impossible by giving every claim somewhere it has to come
-from.**
+**A record layer does not make that impossible — it makes it refusable**, by giving every
+claim somewhere it has to come from, so an invented one has nowhere to hide.
 
 Six rules:
 
@@ -31,7 +31,8 @@ Six rules:
 > directories are the record, which fact types route where, what the perimeter excludes,
 > which words the uncertainty markers use — belongs in that repo's own agent instructions
 > (`AGENTS.md`, `CLAUDE.md`, or equivalent), **which win over this file wherever they
-> differ.** Referred to below as *the repo's instructions*.
+> differ, except Rule 6** — a repo declares the perimeter's content, but cannot waive the
+> obligation to have one. Referred to below as *the repo's instructions*.
 
 ## Locating the record layer
 
@@ -83,7 +84,10 @@ the day it was generated and has been decaying since.
 
 Received documents are the one asymmetry. A signed contract is a rendering nobody may
 regenerate: what it establishes is read out into a source file, and the document itself is
-filed unchanged as the proof.
+filed unchanged as the proof. **For a received document the arrow reverses** — the document
+is the evidence, so a disagreement is a bug in the source file, and reading it for what it
+establishes is exactly the point. The warning above is about generated renderings, which
+carry no authority of their own.
 
 - **Anti-pattern: hand-editing a rendering to fix a number.** The next regeneration
   silently reverts it, and in the meantime two documents make two different claims. Fix
@@ -117,8 +121,8 @@ already out the door by the time anyone notices.
 well-formed, that a routing table exists, that no forbidden file was committed. No tool
 can look at the sentence "led a team of six" and know whether the team had six people.
 Which is exactly why it is the reader's job, every time, and why a passing check suite is
-never evidence that a document is honest. The checks cover the mechanical rules so that
-attention is free for this one.
+never evidence that a document is honest. Mechanical checks cover the mechanical rules so
+that attention is free for this one.
 
 - **Anti-pattern: treating an earlier rendering as a source.** "The CV says it, so it's
   true" launders a fabrication into a fact. The CV is downstream.
@@ -170,6 +174,9 @@ The rules on them:
   grep -rn "\[inferred\]\|\[unknown:" <record-dirs>
   ```
 
+  That command hard-codes the two words this file uses; a record kept in another language
+  greps for its own pair.
+
 **Unresolved markers are the normal state, not an error.** A record with none is a record
 nobody has been honest in. Only a malformed marker — a bare `[unknown]` with no question, a
 third marker word invented on the spot — is a defect worth failing a check over. A check
@@ -215,10 +222,6 @@ This skill mandates that the table exists. **The rows are the repo's own** — a
 record, a client book and a research toolkit route entirely different things, and no
 generic row list would survive contact with any of them. Write the rows for the facts the
 repo actually receives, and add a row the first time a fact arrives with nowhere to go.
-
-The table replaces improvisation with a lookup: an agent holding a durable fact at the end
-of a task should not be making a judgement call about where it goes. Two agents
-improvising file the same kind of fact in two places, and then neither is authoritative.
 
 - **Anti-pattern: a fact that lands in a plan document instead of the record.** Plans are
   temporary by design and get deleted when the work is done; the fact dies with the plan.
