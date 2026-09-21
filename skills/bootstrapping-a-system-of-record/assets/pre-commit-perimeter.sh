@@ -29,6 +29,12 @@ fail=0
 # edited clean after `git add` would otherwise pass while the staged blob still
 # carries what it carried. A submodule entry has no blob here, so it is skipped:
 # what it points at is governed by that repo's own perimeter, not this one.
+# Residual limitation: rule 3 below only ever applies to text, because grep -I
+# discards a blob at its first NUL byte and says nothing - so a UTF-16 document,
+# or a .md carrying a pasted binary run, passes the content rule unexamined. A
+# clean report because the check could not see, which is the shape of a hole
+# already closed here once. -I stays: regexing a 900 KiB PDF helps nobody, and
+# this hook's honest scope is the careless case, not a determined one.
 staged=$(mktemp)
 trap 'rm -f "$staged"' EXIT
 git -c core.quotePath=false diff --cached --no-renames --name-only --diff-filter=ACMRT > "$staged"
@@ -57,7 +63,12 @@ done < "$staged"
 #    One extended regex: IBAN, national ID formats, API key prefixes.
 #    No content rules? Replace the placeholder with an empty string, not nothing.
 #    A double quote inside the value ends this string and changes what runs -
-#    key="[A-Z]*" becomes an unquoted glob, with no syntax error and no match.
+#    key="[A-Z]*" degrades to the unquoted word key=[A-Z]*, so the quotes that
+#    were meant as literal characters become a zero-or-more and the rule fires
+#    on the bare prefix key=, blocking a commit that holds no secret at all.
+#    That false positive is the bad outcome here - it is what teaches people to
+#    reach for --no-verify - and whether the word also globs against real
+#    filenames, handing grep extra file operands, depends on the cwd.
 #    ERE has no \d, \w or \s: write [0-9], [A-Za-z0-9_], [[:space:]] instead.
 if [ -n "<CONTENT_PATTERNS>" ]; then
   while IFS= read -r f; do

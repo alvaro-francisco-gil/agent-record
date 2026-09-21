@@ -29,6 +29,17 @@ FORBIDDEN_PATHS = 'private/*|*private/*|"personal notes/"*|*.fakekey'
 CONTENT_PATTERN = "FAKEACCT-[0-9]{8}|zzsecret_[A-Za-z0-9]{6}"
 PROBE_SECRET = "FAKEACCT-00000001"
 
+# Long on purpose, and the rename test depends on it. git's rename detection
+# only reports R once the pair clears a similarity threshold (50% by default);
+# a one-line file plus a one-line edit scored R055, five points of margin, and
+# below the threshold git reports D+A - which the buggy --diff-filter=ACM does
+# list, so the regression test would have passed against the unfixed hook. At
+# forty lines a move plus one appended line scores in the high nineties, the
+# way the real defect did.
+ORDINARY_BODY = "".join(
+    f"- an ordinary line, number {n}, with nothing in it.\n" for n in range(1, 41)
+)
+
 pytestmark = pytest.mark.skipif(
     shutil.which("git") is None or shutil.which("sh") is None,
     reason="the perimeter hook tests need git and sh on PATH",
@@ -86,7 +97,7 @@ class Repo:
 @pytest.fixture
 def repo(tmp_path):
     r = Repo(tmp_path / "record")
-    r.write("notes/ordinary.md", "An ordinary line with nothing in it.\n")
+    r.write("notes/ordinary.md", ORDINARY_BODY)
     r.git("add", "-A")
     r.git("commit", "-qm", "initial")
     return r
@@ -142,11 +153,44 @@ def test_a_rename_into_a_forbidden_path_is_blocked(repo):
     with (repo.path / "private/ordinary.md").open("a", encoding="utf-8") as fh:
         fh.write(f"- reference {PROBE_SECRET}\n")
     repo.git("add", "-A")
+    # The premise, asserted rather than assumed: git has to be reporting this
+    # as a rename for the test to be testing anything. If a future edit to the
+    # fixture drops the pair below the similarity threshold, git reports D+A,
+    # the old buggy filter lists the add, and this test would go green against
+    # an unfixed hook. Fail loudly instead of passing vacuously.
+    status = repo.git("diff", "--cached", "--name-status", "-M").stdout
+    assert any(
+        line.startswith("R") and line.endswith("private/ordinary.md")
+        for line in status.splitlines()
+    ), f"git did not report a rename, so this test no longer guards C1:\n{status}"
     r = repo.run_hook()
     assert r.returncode == 1, r.stdout + r.stderr
     assert "private/ordinary.md is outside the perimeter" in r.stdout
     # The edit that rode along with the move is caught too.
     assert "private/ordinary.md matches a forbidden content pattern" in r.stdout
+
+
+def test_a_typechange_into_a_forbidden_blob_is_blocked(repo):
+    # A tracked symlink replaced by a real file. git calls that neither an add
+    # nor a modification but a typechange, so the T in --diff-filter=ACMRT is
+    # the only thing keeping the new blob in scope at all.
+    link = repo.path / "notes/link.md"
+    try:
+        link.symlink_to("ordinary.md")
+    except (OSError, NotImplementedError):  # pragma: no cover - no symlinks here
+        pytest.skip("this filesystem cannot hold a symlink")
+    repo.git("add", "notes/link.md")
+    repo.git("commit", "-qm", "a tracked symlink")
+    link.unlink()
+    repo.write("notes/link.md", f"- reference {PROBE_SECRET}\n")
+    repo.git("add", "notes/link.md")
+    status = repo.git("diff", "--cached", "--name-status").stdout
+    assert any(
+        line.startswith("T") for line in status.splitlines()
+    ), f"git did not report a typechange, so this test guards nothing:\n{status}"
+    r = repo.run_hook()
+    assert r.returncode == 1, r.stdout + r.stderr
+    assert "notes/link.md matches a forbidden content pattern" in r.stdout
 
 
 def test_a_file_over_the_size_limit_is_blocked(repo):

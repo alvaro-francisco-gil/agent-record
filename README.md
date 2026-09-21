@@ -126,7 +126,10 @@ Markdown, or widen the glob in your copy.
 perimeter rule depends on a layout only that repo has — refuses oversized files, forbidden
 paths and forbidden content patterns in the staged blobs, including a file that arrives at a
 forbidden path by being renamed into it. It catches the careless case, not
-a determined one. `core.hooksPath` is local config and is never committed, so a fresh clone
+a determined one. **The content rule only ever applies to text**: `grep -I` discards a blob
+at its first NUL byte, so a UTF-16 document, or a `.md` carrying a pasted binary run, passes
+that rule unexamined — reported clean because the check could not see it, rather than
+because it was. `core.hooksPath` is local config and is never committed, so a fresh clone
 has no perimeter check until someone sets it again on that machine.
 
 **The evidence rule is the one no script can check.** No tool can read "led a team of six"

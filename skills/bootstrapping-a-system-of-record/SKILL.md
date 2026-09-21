@@ -173,10 +173,14 @@ below. Step 4 needs something already committed, so it runs immediately after. E
 placeholder is quoted, because a real one of them contains a space sooner or later:
 
 ```bash
-# 1. It runs, and it lets an ordinary file through.
-git add "<an ordinary file>"
+# 1. It runs, and it lets an ordinary file through. Probe with a throwaway,
+#    like steps 2 and 3: staging a real source file and unstaging it is clean
+#    before the first commit and leaves a staged deletion of it afterwards,
+#    and this recipe is meant to be re-run.
+printf 'an ordinary line\n' > "probe ordinary.md"
+git add "probe ordinary.md"
 sh .githooks/pre-commit && echo "pass path OK"
-git rm --cached -qf "<an ordinary file>"
+git rm --cached -qf "probe ordinary.md" && rm -f "probe ordinary.md"
 
 # 2. The path rule bites. Use a throwaway that matches one forbidden pattern.
 mkdir -p "<forbidden dir>" && echo placeholder > "<forbidden dir>/probe file.txt"
@@ -226,8 +230,12 @@ file it exists to stop. The shipped version reads one path at a time and turns
 
 Step 4 is there for the same reason and it is newer: the shipped version passes
 `--no-renames` and `--diff-filter=ACMRT`, so a moved file is listed as the add it really is.
-If you rewrite the `git diff --cached` line, keep both, and re-run step 4 — a filter that
-drops `R` blocks nothing and says nothing.
+If you rewrite the `git diff --cached` line, keep both, and re-run step 4. Dropping `R`
+alone changes nothing while `--no-renames` is there, because there is then never an `R`
+entry to list; it is dropping **both** that reopens the hole and lets a moved file through
+in silence. Keep the pair: each covers the other's absence. `T` is load-bearing on its own —
+a tracked symlink replaced by a real file is a typechange, and without `T` its new contents
+are never read.
 
 Then check the three ways an installed hook is still not installed:
 
