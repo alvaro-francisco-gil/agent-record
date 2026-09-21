@@ -77,6 +77,9 @@ perimeter contains; it does not get to skip having one.
 Both ship in one install. The bootstrap skill runs once; the convention skill is what the
 repo lives by afterwards.
 
+**If you cannot name a document that comes out of your repo, stop here.** A record with no
+renderings is a notebook, and a notebook does not need this convention.
+
 The bootstrap interview is four questions, asked one at a time, each answer written down
 before the next is asked. **Question 3 — what is sensitive, and is this repo public — is a
 gate: nothing is committed until it is answered**, because the first commit is the only

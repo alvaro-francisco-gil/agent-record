@@ -28,8 +28,7 @@ cannot, and pretending otherwise in a repo about evidence would be the worst pos
 `agent-record` holds no authoritative account of anything real. It has no sources and no
 renderings, no routing table, no perimeter section and no `record-check.py` of its own — it
 ships the convention rather than practising it. The records the convention was drawn from
-are private and hold personal and financial material, so they cannot be named here, quoted
-here, or pointed at.
+are private, so they cannot be named here, quoted here, or pointed at.
 
 Two consequences bind anyone writing in this repo:
 
@@ -41,8 +40,8 @@ Two consequences bind anyone writing in this repo:
   one. A plausible invented record is indistinguishable from a real one six months later,
   which is precisely the failure the convention exists to prevent.
 
-What this repo can honestly claim is that the convention is in use elsewhere. It cannot show
-you where, and the README does not try to.
+Because those records are private, this repo cannot show you the convention in use. Do not
+substitute an invented example for the missing one.
 
 ## Per-repo policy
 
@@ -52,13 +51,13 @@ you where, and the README does not try to.
   deploys.
 - **"Verified" means** the skill has been installed from this marketplace into a clean repo
   and the described behaviour observed — not that the Markdown reads correctly. The README
-  says plainly which tools that has and has not happened in; keep that note honest as it
-  changes.
+  says plainly that this has not yet happened in any tool; keep that note honest the moment
+  it does.
 - **The gate before every commit** is `python3 scripts/validate.py && python3 -m pytest -q`.
   `validate.py` catches the failures that only surface when an agent tries to load the
   plugin — unparseable frontmatter, a name that disagrees with its directory, version drift
   across manifests. The tests cover `record-check.py`, which ships to strangers and is the
-  only executable Python here.
+  only Python that does.
 - **Assets are shipped as they are copied.** `skills/bootstrapping-a-system-of-record/assets/`
   holds files that land verbatim in someone else's repo. `record-check.py` is copied
   unchanged, so it must run on a bare Python 3 with no dependencies;
