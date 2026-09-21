@@ -1,0 +1,17 @@
+{
+  "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
+  "name": "agent-record",
+  "description": "Repo conventions for holding an authoritative record that agents can work from.",
+  "owner": {
+    "name": "Alvaro Francisco Gil"
+  },
+  "plugins": [
+    {
+      "name": "system-of-record",
+      "description": "A convention for repos that hold the authoritative record of something real: sources vs renderings, the evidence rule, the capture rule, greppable uncertainty markers, a fact-routing table, and a declared perimeter. Ships a bootstrap skill that interviews, scaffolds, and installs the checks.",
+      "source": "./",
+      "category": "workflow",
+      "homepage": "https://github.com/alvaro-francisco-gil/agent-record"
+    }
+  ]
+}

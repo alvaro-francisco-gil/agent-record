@@ -1,0 +1,25 @@
+{
+  "name": "system-of-record",
+  "version": "0.1.0",
+  "description": "A convention for repos that hold the authoritative record of something real: sources vs renderings, the evidence rule, the capture rule, greppable uncertainty markers, a fact-routing table, and a declared perimeter. Works whether the record is the whole repo or a layer inside a code repo.",
+  "author": { "name": "Alvaro Francisco Gil", "url": "https://github.com/alvaro-francisco-gil" },
+  "homepage": "https://github.com/alvaro-francisco-gil/agent-record",
+  "repository": "https://github.com/alvaro-francisco-gil/agent-record",
+  "license": "MIT",
+  "keywords": ["knowledge", "documentation", "evidence", "provenance", "record", "context"],
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "System of record",
+    "shortDescription": "The authoritative record of something real: sources vs renderings, evidence, capture, and a declared perimeter",
+    "longDescription": "A convention for repos that hold the authoritative record of something real: sources vs renderings, the evidence rule, the capture rule, greppable uncertainty markers, a fact-routing table, and a declared perimeter. Works whether the record is the whole repo or a layer inside a code repo.",
+    "developerName": "Alvaro Francisco Gil",
+    "category": "Developer Tools",
+    "capabilities": ["Read", "Write"],
+    "defaultPrompt": [
+      "Set up this repo to hold a record my agent can work from.",
+      "Where should this fact go?",
+      "What open questions are outstanding?"
+    ],
+    "websiteURL": "https://github.com/alvaro-francisco-gil/agent-record"
+  }
+}
