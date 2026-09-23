@@ -304,3 +304,21 @@ def test_a_marker_inside_a_fenced_block_is_still_not_a_marker(tmp_path):
     errors, worklist = record_check.check(root)
     assert errors == []
     assert worklist == []
+
+
+def test_a_closed_pipe_is_not_a_traceback(tmp_path):
+    # `record-check.py --list | head` is how anyone reads a long worklist, and
+    # a traceback there reads as a broken tool. Driven end to end because the
+    # failure is in the pipe, not in any function.
+    import subprocess
+    root = _repo(tmp_path, **{"note.md": "".join(
+        f"Item {n} [unknown: what is item {n}?]\n" for n in range(5000))})
+    reader = subprocess.Popen(["head", "-1"], stdin=subprocess.PIPE,
+                              stdout=subprocess.DEVNULL)
+    writer = subprocess.Popen([sys.executable, str(ASSET), "--root", str(root), "--list"],
+                              stdout=reader.stdin, stderr=subprocess.PIPE)
+    reader.stdin.close()
+    stderr = writer.communicate()[1].decode()
+    reader.wait()
+    assert "Traceback" not in stderr, stderr
+    assert "BrokenPipeError" not in stderr, stderr

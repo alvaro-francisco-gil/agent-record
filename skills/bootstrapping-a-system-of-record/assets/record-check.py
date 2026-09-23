@@ -17,7 +17,7 @@
 #     block if you want it out of the worklist.
 #   - Nothing here reads content for sensitivity, and nothing here can check the
 #     evidence rule. A pass is not evidence that a document is honest.
-import argparse, pathlib, re, sys
+import argparse, os, pathlib, re, sys
 
 SKIP = {".git", "node_modules", ".venv", "venv", "__pycache__"}
 FENCE = re.compile(r"\s*(```|~~~)")
@@ -139,14 +139,23 @@ def main():
         pathlib.Path(a.root).resolve(), a.inferred_marker, a.unknown_marker, a.agents_file
     )
 
-    if a.list or worklist:
-        print(f"worklist - {len(worklist)} open marker(s)")
-        for w in worklist:
-            print(f"  {w}")
-    if errors:
-        print("FAIL")
-        for e in errors:
-            print(f"  - {e}")
+    try:
+        if a.list or worklist:
+            print(f"worklist - {len(worklist)} open marker(s)")
+            for w in worklist:
+                print(f"  {w}")
+        if errors:
+            print("FAIL")
+            for e in errors:
+                print(f"  - {e}")
+    except BrokenPipeError:
+        # `record-check.py --list | head` is how anyone reads a long worklist.
+        # A traceback there reads as a broken tool, and the exit code below is
+        # still the honest answer.
+        try:
+            os.dup2(os.open(os.devnull, os.O_WRONLY), sys.stdout.fileno())
+        except (OSError, ValueError):
+            pass
     # --list is the health check the agents-file template installs everywhere,
     # so it never exits non-zero - an open worklist is the normal state. It
     # still has to say when a marker is malformed, or the one mode people run
@@ -155,7 +164,10 @@ def main():
         return 0
     if errors:
         return 1
-    print(f"OK - no malformed markers, anchors present ({len(worklist)} open marker(s))")
+    try:
+        print(f"OK - no malformed markers, anchors present ({len(worklist)} open marker(s))")
+    except BrokenPipeError:
+        pass
     return 0
 
 
