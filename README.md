@@ -43,8 +43,9 @@ is as you left it.
 
 **4. Uncertainty is marked, literally and greppably.** Exactly two markers — `[inferred]`
 for something derived rather than confirmed, and `[unknown: <question>]` where the text is
-the question to ask. Never silently drop one, and never guess past one: an `[unknown:]` in a
-source must not become a specific in a rendering. One grep over the record lists everything
+the question to ask. One word may carry both states if the repo declares it that way; what
+is forbidden is a third state. Never silently drop a marker, and never guess past one: an
+`[unknown:]` in a source must not become a specific in a rendering. One grep over the record lists everything
 unconfirmed, which is both the health check and the interview worklist. Unresolved markers
 are the normal state, not a failure — a record with none is a record nobody has been honest
 in.
@@ -119,10 +120,17 @@ The bootstrap scaffolds two checks, and both are deliberately narrow.
 verifies that both anchors are present in the agents file. It never guesses what is
 sensitive, so it cannot fire on content, and it treats unresolved markers as the worklist
 rather than as failures. A bare `[unknown]` with no question is an error; forty open
-questions are not. **It scans `*.md` and nothing else**, and it skips the agents file in the
-marker sweep because that file is where the two markers are defined — so a marker in a
-`.txt`, a `.csv`, a notebook or the agents file itself is invisible to it. Keep the record in
+questions are not. **It scans `*.md` and nothing else**, and it skips dot-directories and
+every file named like the agents file — that is where the markers are defined — so a marker
+in a `.txt`, a `.csv`, a notebook or an agents file is invisible to it. Keep the record in
 Markdown, or widen the glob in your copy.
+
+A marker written in backticks still counts, because backticking them is the house style in
+more than one record; only a form that could never be a real marker (a bare word, an empty
+question, a `<placeholder>`) reads as prose about markers. Show the syntax in a fenced block
+to keep it out of the worklist. **A checker that reports a clean record on a repo full of
+open questions is worse than no checker**, which is the failure that shape is there to
+avoid.
 
 `.githooks/pre-commit` — generated at bootstrap from the perimeter answers, because every
 perimeter rule depends on a layout only that repo has — refuses oversized files, forbidden

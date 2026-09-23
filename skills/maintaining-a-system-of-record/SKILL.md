@@ -57,12 +57,20 @@ into it for facts it should be passed.** When the layer is large enough to have 
 conventions, give it its own agents file in its own directory, so an agent working there
 loads the record rules without loading the whole engineering file.
 
+**It also declares where to start reading.** Name one source file as the entry point — the
+current state, with links out to everything else — and say in the agents file that it is
+read before anything else about the subject. Without it an agent reconstructs context from
+whatever it opens first, and what it opens first is usually a rendering: a CV, last year's
+report, a past proposal. Every rule below assumes the reader found the sources.
+
 - **Anti-pattern: hard-coding a record fact into code.** A study's dates baked into a
   library function, a client's address inside a rendering script, a rate constant in a
   template. The fact now has two homes and they will disagree. Pass it in from the record.
 - **Anti-pattern: a record layer with no declared boundary.** If the agents file does not
   say which directories are the record, every rule below is unenforceable, because nobody
   can tell what is covered.
+- **Anti-pattern: no entry point.** A reader who has to guess where the current truth lives
+  guesses wrong in the direction of whatever document looks most finished.
 
 ## Rule 1 — sources and renderings
 
@@ -89,11 +97,20 @@ is the evidence, so a disagreement is a bug in the source file, and reading it f
 establishes is exactly the point. The warning above is about generated renderings, which
 carry no authority of their own.
 
+**When a source turns out to be wrong, correct it forward.** A rendering is regenerated,
+but a source that was wrong is part of the record's history: add the correction with the
+date and what changed, rather than quietly editing the original to match what is true now.
+A record is trusted because its history can be read back; an entry rewritten in place makes
+every other entry a question. A typo is a typo — but a changed *fact* is an event, and
+events are appended.
+
 - **Anti-pattern: hand-editing a rendering to fix a number.** The next regeneration
   silently reverts it, and in the meantime two documents make two different claims. Fix
   the source, regenerate.
 - **Anti-pattern: a fact that exists only inside a rendering.** If the only place a date
   or a figure appears is a generated PDF, it is not in the record. Write the source file.
+- **Anti-pattern: editing a past entry so the record looks like it was always right.** The
+  outgoing documents built on the old figure still exist; now nothing explains them.
 
 ## Rule 2 — the evidence rule
 
@@ -101,12 +118,19 @@ carry no authority of their own.
 session transcript, not to what is obviously true — to a file, by path, that a reader can
 open.
 
-The three ways this rule gets broken, named so they can be refused:
+The four ways this rule gets broken, named so they can be refused:
 
 - **Rounding a number up.** "Just over three years" for two years and nine months. "Around
   a thousand users" for 840. The rounded figure is the one that gets quoted back.
 - **Inventing a metric.** No source records an improvement, so a percentage appears that
   matches the shape of the sentence. It is fabrication whether or not it is flattering.
+- **Fabricating the parts of a real total.** The aggregate is sourced — a headcount, a
+  revenue figure, a member count — and the breakdown is not, so the parts are invented to
+  sum correctly. This is the most tempting of the four, because the total is genuinely
+  right and every part looks like arithmetic. It is also the worst, because a plausible
+  decomposition *manufactures evidence*: each invented part now reads as sourced. The same
+  move in reverse is plugging a gap — **never close a discrepancy by inventing the
+  difference. Report the difference.**
 - **Writing plausible filler where a specific is missing.** A responsibility nobody
   performed, a tool nobody used, a scope nobody had — inserted because the paragraph had a
   gap and prose abhors one. **Surface the gap as a question instead**, in the record's own
@@ -116,6 +140,12 @@ The three ways this rule gets broken, named so they can be refused:
 first, then use it.** Not afterwards, not "I'll capture that once the letter is done" —
 first. A claim used before it is recorded is a claim with no trail, and the letter is
 already out the door by the time anyone notices.
+
+**Where a fact came in is part of the fact.** The rule above governs claims going out; the
+same discipline applies on the way in. When a fact is written, write its origin beside it —
+the document, the message, the person, and the date. A record whose provenance nobody can
+retrace is a record nobody trusts in three months, and re-verifying it costs far more than
+the note would have.
 
 **This is the one rule a script cannot check.** A tool can verify that a marker is
 well-formed, that a routing table exists, that no forbidden file was committed. No tool
@@ -191,6 +221,22 @@ that fires on the normal state teaches people to bypass it.
 language uses that language's two words, declared in the repo's instructions. Never a
 third: "probably", "TBC", "verify" and their friends fragment the grep, and a marker that
 does not appear in one grep might as well not exist.
+
+**One word may carry both states, if the repo declares it.** A record that writes a single
+marker in two forms — bare for *unverified*, with a question for *here is the question* —
+has the same two states under one word. Declaring that word as both of the repo's two
+markers says so. What Rule 4 forbids is a third *state*, not a second spelling.
+
+**A confidence grade is a different axis, and is not a third marker.** The two markers are a
+confirmation *state*: a human has confirmed this, or nobody has. A record assembled from
+historical sources of varying quality also needs a fidelity *grade* — how good the
+underlying source is — and that is orthogonal. A repo that needs one declares it separately
+(see *Three patterns*, below).
+
+**Show the syntax in a fenced block, not in backticks.** Every record repo ends up writing
+its own markers in prose in order to document them. A marker in backticks is still a marker
+— backticking every marker is the house style in more than one record — so a grep counts it
+and so should a checker. A fenced block is quoted syntax; backticks are only typography.
 
 ### The intake shape
 
@@ -289,6 +335,32 @@ event and the date, not the person.
   will never read it answers no real question. The record is not an outgoing document.
 - **Anti-pattern: "I'll clean it up before it goes public."** History does not clean up.
   The decision is made at commit time or not at all.
+
+## Three patterns, named but not mandated
+
+None of these belongs in every record, and a repo that does not need one should not carry
+it. They are named because each was re-derived from scratch by the second record that
+needed it, which is a week that a paragraph saves. Each carries the test for whether it
+applies.
+
+**Graded fidelity** — *needed when the record is assembled from historical sources of
+varying quality.* Declare a level per file (complete, documentary, summary-only, recalled)
+and say what each one means. Two rules make it worth having: **no rendering may aggregate
+across levels without saying so** — a total that mixes audited figures with recalled ones is
+a fabricated total wearing a real one's clothes — and **fidelity only ever improves**, by
+finding a better source, in its own commit. This is the axis Rule 4 does not cover.
+
+**Stable identity** — *needed when the record is about many people or entities tracked over
+time.* Give each one an id that is never reused and never renumbered, in an append-only
+registry. The id is the person; a slot number, a row position and a filename are not.
+**When in doubt, do not merge.** Merging two ids later is an afternoon. Splitting two people
+who have been fused for years is close to impossible, and every document generated in
+between was wrong about both.
+
+**Readiness counted, not claimed** — *needed when outgoing documents are assembled from many
+source files.* Before a bundle goes out, count the unresolved markers across everything it
+draws on, and say the count rather than saying "ready". The failure this catches is not
+forgetting a proposal; it is believing one is finished.
 
 ## Repo health beats every rule above
 

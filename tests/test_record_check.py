@@ -186,3 +186,121 @@ def test_a_real_marker_beside_a_code_span_still_counts(tmp_path):
     errors, worklist = record_check.check(root)
     assert errors == []
     assert any("what rate?" in w for w in worklist)
+
+
+# --- 1.0.3: the question decides, not the backticks. 1.0.2 erased every marker
+# inside a code span, which silenced a repo whose house style is to backtick
+# its markers - a checker reporting a clean record on a repo with dozens of
+# open questions, the same failure seen from the other side. ---
+
+
+def test_a_real_question_inside_a_code_span_is_still_a_marker(tmp_path):
+    # The 1.0.2 regression. A question written in backticks is an open
+    # question; backticks are typography, not quotation.
+    root = _repo(tmp_path, **{"note.md": "Cost `[unknown: what did it come to?]`\n"})
+    errors, worklist = record_check.check(root)
+    assert errors == []
+    assert any("what did it come to?" in w for w in worklist)
+
+
+def test_a_bare_inferred_inside_a_code_span_is_still_a_marker(tmp_path):
+    # `[inferred]` is a complete marker on its own, so inside backticks it is
+    # still a use. The cost is that a prose mention of it counts too - a
+    # worklist line, never an error, and a fenced block is the way to quote it.
+    root = _repo(tmp_path, **{"note.md": "Expect EUR 400-900/yr `[inferred]`\n"})
+    errors, worklist = record_check.check(root)
+    assert errors == []
+    assert any("note.md:1" in w for w in worklist)
+
+
+def test_an_empty_question_inside_a_code_span_is_a_mention_not_an_error(tmp_path):
+    # It cannot be a real open question - there is no question in it - so in a
+    # code span it is the name of the marker, written in prose about markers.
+    root = _repo(tmp_path, **{"doc.md": "Unconfirmed facts carry `[unknown:]`.\n"})
+    errors, worklist = record_check.check(root)
+    assert errors == []
+    assert worklist == []
+
+
+def test_an_empty_question_outside_a_code_span_is_still_an_error(tmp_path):
+    root = _repo(tmp_path, **{"note.md": "Revenue [unknown:]\n"})
+    errors, _ = record_check.check(root)
+    assert any("empty question" in e for e in errors)
+
+
+def test_a_placeholder_question_is_a_template_not_a_marker(tmp_path):
+    # <question> is the shape the template and every skill doc writes. It is
+    # never an open question, wherever it appears.
+    root = _repo(tmp_path, **{"doc.md": "Write [unknown: <question>] to ask.\n"})
+    errors, worklist = record_check.check(root)
+    assert errors == []
+    assert worklist == []
+
+
+def test_a_question_may_wrap_across_lines(tmp_path):
+    root = _repo(tmp_path, **{"note.md": "- [unknown: can the ayuntamiento be a\n  beneficiary under this call?]\n"})
+    errors, worklist = record_check.check(root)
+    assert errors == []
+    assert any("note.md:1" in w and "beneficiary under this call?" in w for w in worklist)
+
+
+def test_a_wrapped_question_is_reported_on_one_line_as_one_marker(tmp_path):
+    root = _repo(tmp_path, **{"note.md": "- [unknown: first\n  second]\n"})
+    _, worklist = record_check.check(root)
+    assert len(worklist) == 1
+    assert "\n" not in worklist[0]
+
+
+def test_an_unterminated_question_is_an_error_not_a_swallowed_document(tmp_path):
+    # Without this it matches nothing and disappears, which is the worst of the
+    # three outcomes: a malformed marker that reads as a clean record.
+    root = _repo(tmp_path, **{"note.md": "Revenue [unknown: what did Q3 close at\n\nNext paragraph.\n"})
+    errors, worklist = record_check.check(root)
+    assert any("note.md:1" in e and "unterminated" in e for e in errors)
+    assert worklist == []
+
+
+def test_one_word_for_both_markers_reads_the_bare_form_as_inferred(tmp_path):
+    # A repo may run a single marker in two forms: bare means unverified, and
+    # with a question means here is the question. Declaring the same word twice
+    # says so, and the bare form is then a worklist item rather than an error.
+    root = _repo(tmp_path, **{"nota.md": (
+        'tipo: "[[confirmar]]"\n'
+        "El plazo [[confirmar: cierra en junio o en julio?]]\n"
+    )})
+    errors, worklist = record_check.check(root, inferred="confirmar", unknown="confirmar")
+    assert errors == []
+    assert any("nota.md:1" in w for w in worklist)
+    assert any("cierra en junio o en julio?" in w for w in worklist)
+
+
+def test_a_hidden_directory_is_not_the_record(tmp_path):
+    # Tooling, transcripts and agent scratch live in dot-directories. A record
+    # layer never does, and sweeping them buries the real worklist in noise.
+    (tmp_path / ".superpowers").mkdir()
+    (tmp_path / ".superpowers" / "report.md").write_text(
+        "Revenue [unknown: what did Q3 close at?] and [unknown]\n", encoding="utf-8")
+    root = _repo(tmp_path)
+    errors, worklist = record_check.check(root)
+    assert errors == []
+    assert worklist == []
+
+
+def test_every_agents_file_is_skipped_not_only_the_root_one(tmp_path):
+    # A nested agents file documents the convention for its subtree, so it
+    # matches the markers it defines for exactly the reason the root one does.
+    (tmp_path / "project").mkdir()
+    (tmp_path / "project" / "AGENTS.md").write_text(
+        "Unconfirmed values carry [unknown: <question>] or [inferred].\n", encoding="utf-8")
+    root = _repo(tmp_path)
+    errors, worklist = record_check.check(root)
+    assert errors == []
+    assert worklist == []
+
+
+def test_a_marker_inside_a_fenced_block_is_still_not_a_marker(tmp_path):
+    # Fences stay the way to quote the convention, including a real question.
+    root = _repo(tmp_path, **{"doc.md": "Syntax:\n\n```\n[unknown: what did Q3 close at?]\n```\n"})
+    errors, worklist = record_check.check(root)
+    assert errors == []
+    assert worklist == []

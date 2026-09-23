@@ -133,15 +133,24 @@ point of the ordering.
    generic half of enforcement: it lints marker syntax and verifies both anchors, and it
    never guesses what is sensitive, so it cannot fire on content. Unresolved markers are the
    worklist, not a failure. Pass `--agents-file`, `--inferred-marker` and `--unknown-marker`
-   if the repo's answers differ from the defaults.
+   if the repo's answers differ from the defaults; pass the **same word twice** if the repo
+   runs one marker in two forms, and the bare form is then read as *unverified* rather than
+   as malformed.
 
    **Say what it does not scan, because the answer is narrow.** It reads `*.md` and nothing
-   else — a marker in a `.txt`, a `.csv`, a notebook or a rendering is invisible to it — and
-   it skips the agents file in the marker sweep, reading it only for the two anchors. That
-   skip is deliberate: the agents file is where the two markers are *defined*, so without it
-   every freshly bootstrapped repo would open its worklist with two entries that are the
-   definitions rather than gaps. The cost is that a marker written in the agents file itself
-   is never listed, so put facts in sources, not in the instructions.
+   else — a marker in a `.txt`, a `.csv`, a notebook or a rendering is invisible to it. It
+   skips every file named like the agents file, at any depth, reading the root one for the
+   two anchors: that is where the markers are *defined*, so without the skip a freshly
+   bootstrapped repo would open its worklist with the definitions rather than with gaps. The
+   cost is that a marker written in an agents file is never listed, so put facts in sources,
+   not in instructions. It also skips dot-directories, where tooling and agent scratch live
+   and a record layer does not.
+
+   **A marker in backticks still counts.** Only a form that could never be a real marker —
+   a bare word, an empty question, a `<placeholder>` — is read as prose *about* markers
+   when it appears in a code span. Quote the syntax in a fenced block to keep it out of the
+   worklist entirely. The one thing this checker must never do is report a clean record on
+   a repo full of open questions.
 4. **`.githooks/pre-commit`.** From `assets/pre-commit-perimeter.sh`, placeholders filled
    from question 3, then `chmod +x .githooks/pre-commit` and
    `git config core.hooksPath .githooks`. This is the repo-specific half, and it is
@@ -149,8 +158,11 @@ point of the ordering.
    repo has. A shipped generic version would have to guess, and a false positive teaches
    people to reach for `--no-verify`, which is worse than no hook at all.
 5. **Verify the hook runs** — the next section, before anything is committed.
-6. **The first source file.** If the interview surfaced a real fact, write it down: the
-   claim, where it came from, and an `[unknown: ...]` marker wherever a specific is missing.
+6. **The first source file, and name it the entry point.** If the interview surfaced a real
+   fact, write it down: the claim, where it came from, and an `[unknown: ...]` marker
+   wherever a specific is missing. Say in the agents file that this file is read first —
+   a record whose reader has to guess where the current truth lives gets reconstructed from
+   whatever document looks most finished.
    One true, sourced fact with one honest gap in it demonstrates the evidence rule and the
    markers together, which is worth more than any amount of prose describing them.
 7. **Run `python3 scripts/record-check.py`, then commit.**

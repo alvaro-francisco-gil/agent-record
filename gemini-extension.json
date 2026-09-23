@@ -1,6 +1,6 @@
 {
   "name": "system-of-record",
-  "version": "1.0.2",
+  "version": "1.1.0",
   "description": "A convention for repos that hold the authoritative record of something real: sources vs renderings, the evidence rule, the capture rule, greppable uncertainty markers, a fact-routing table, and a declared perimeter.",
   "contextFileName": "GEMINI.md"
 }
