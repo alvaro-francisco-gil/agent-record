@@ -322,3 +322,39 @@ def test_a_closed_pipe_is_not_a_traceback(tmp_path):
     reader.wait()
     assert "Traceback" not in stderr, stderr
     assert "BrokenPipeError" not in stderr, stderr
+
+
+# --- 1.2.0: the record is not always Markdown. An association's accounts keep
+# theirs in a beancount ledger and a YAML registry: 534 markers outside .md
+# against 44 inside it, so a Markdown-only sweep saw 4% of the record. ---
+
+
+def test_the_sweep_is_markdown_only_until_the_repo_says_otherwise(tmp_path):
+    root = _repo(tmp_path)
+    (tmp_path / "libro.beancount").write_text('  justificante: "[unknown: is there a receipt?]"\n', encoding="utf-8")
+    errors, worklist = record_check.check(root)
+    assert errors == []
+    assert worklist == []
+
+
+def test_a_declared_glob_widens_the_sweep(tmp_path):
+    root = _repo(tmp_path)
+    (tmp_path / "libro.beancount").write_text('  justificante: "[unknown: is there a receipt?]"\n', encoding="utf-8")
+    (tmp_path / "registro.yml").write_text("  alta: [inferred]\n", encoding="utf-8")
+    errors, worklist = record_check.check(root, globs=("*.md", "*.beancount", "*.yml"))
+    assert errors == []
+    assert any("is there a receipt?" in w for w in worklist)
+    assert any("registro.yml" in w for w in worklist)
+
+
+def test_a_file_matching_two_globs_is_swept_once(tmp_path):
+    root = _repo(tmp_path, **{"note.md": "Revenue [unknown: what did Q3 close at?]\n"})
+    _, worklist = record_check.check(root, globs=("*.md", "note.md"))
+    assert len(worklist) == 1
+
+
+def test_main_honours_repeated_glob_flags(tmp_path, capsys, monkeypatch):
+    root = _repo(tmp_path)
+    (tmp_path / "libro.beancount").write_text('  ; [unknown: which activity?]\n', encoding="utf-8")
+    assert _run(monkeypatch, root, "--glob", "*.md", "--glob", "*.beancount") == 0
+    assert "which activity?" in capsys.readouterr().out

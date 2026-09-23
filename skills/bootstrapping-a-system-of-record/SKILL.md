@@ -137,8 +137,11 @@ point of the ordering.
    runs one marker in two forms, and the bare form is then read as *unverified* rather than
    as malformed.
 
-   **Say what it does not scan, because the answer is narrow.** It reads `*.md` and nothing
-   else — a marker in a `.txt`, a `.csv`, a notebook or a rendering is invisible to it. It
+   **Ask what the record is written in, and pass `--glob` for each.** It sweeps `*.md` by
+   default, which is right for a record of prose and wrong for one kept in a ledger, a
+   registry or a notebook. Getting this wrong is quiet: an association's accounts adopting
+   this convention had 44 markers in Markdown and 534 in its beancount files and YAML
+   registry, so the default swept 4% of the record and reported it clean. It
    skips every file named like the agents file, at any depth, reading the root one for the
    two anchors: that is where the markers are *defined*, so without the skip a freshly
    bootstrapped repo would open its worklist with the definitions rather than with gaps. The

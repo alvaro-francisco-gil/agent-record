@@ -120,7 +120,9 @@ The bootstrap scaffolds two checks, and both are deliberately narrow.
 verifies that both anchors are present in the agents file. It never guesses what is
 sensitive, so it cannot fire on content, and it treats unresolved markers as the worklist
 rather than as failures. A bare `[unknown]` with no question is an error; forty open
-questions are not. **It scans `*.md` and nothing else**, and it skips dot-directories and
+questions are not. **It sweeps `*.md` unless you pass `--glob` for each format your record
+is written in** — a record kept in a ledger, a registry or a notebook must say so, or the
+check reports a clean sweep of the 4% of it that happens to be Markdown. It skips dot-directories and
 every file named like the agents file — that is where the markers are defined — so a marker
 in a `.txt`, a `.csv`, a notebook or an agents file is invisible to it. Keep the record in
 Markdown, or widen the glob in your copy.

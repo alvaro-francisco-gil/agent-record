@@ -5,8 +5,12 @@
 # agents file. Unresolved markers are NOT errors - they are the worklist.
 #
 # What it does not cover, so nobody reads a pass as more than it is:
-#   - Only *.md is scanned. A marker in a .txt, .csv, .html or .ipynb source is
-#     invisible here. Keep the record in Markdown, or extend this glob.
+#   - Only *.md is scanned unless --glob says otherwise. A record kept in a
+#     ledger, a registry or a notebook declares its own globs; a marker in a
+#     format nobody declared is invisible here.
+#   - Fenced blocks and `code spans` are Markdown notions. They are honoured in
+#     every swept file, so a stray backtick in a non-Markdown source can hide a
+#     *malformed* marker. It can never hide a real question.
 #   - Files named like the agents file are read for their anchors and then
 #     skipped by the marker sweep, at any depth, because that is where the
 #     markers are defined. A marker written in one is never listed.
@@ -52,7 +56,8 @@ def _views(body):
     return "\n".join(plain), "\n".join(masked)
 
 
-def check(root, inferred="inferred", unknown="unknown", agents_file="AGENTS.md"):
+def check(root, inferred="inferred", unknown="unknown", agents_file="AGENTS.md",
+          globs=("*.md",)):
     errors, worklist = [], []
 
     agents = root / agents_file
@@ -73,7 +78,10 @@ def check(root, inferred="inferred", unknown="unknown", agents_file="AGENTS.md")
     # bare form is then a worklist item rather than a malformed marker.
     fused = inferred == unknown
 
-    for path in sorted(root.rglob("*.md")):
+    # A set, so a file matching two declared globs is swept once.
+    for path in sorted({p for g in globs for p in root.rglob(g)}):
+        if not path.is_file():
+            continue
         parts = path.relative_to(root).parts
         if SKIP & set(parts):
             continue
@@ -132,11 +140,14 @@ def main():
     ap.add_argument("--agents-file", default="AGENTS.md")
     ap.add_argument("--inferred-marker", default="inferred")
     ap.add_argument("--unknown-marker", default="unknown")
+    ap.add_argument("--glob", action="append", dest="globs", metavar="PATTERN",
+                    help="file pattern to sweep; repeatable, defaults to *.md")
     ap.add_argument("--list", action="store_true", help="print the worklist and exit 0")
     a = ap.parse_args()
 
     errors, worklist = check(
-        pathlib.Path(a.root).resolve(), a.inferred_marker, a.unknown_marker, a.agents_file
+        pathlib.Path(a.root).resolve(), a.inferred_marker, a.unknown_marker, a.agents_file,
+        tuple(a.globs or ("*.md",)),
     )
 
     try:
