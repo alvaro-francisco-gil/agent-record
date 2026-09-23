@@ -1,11 +1,15 @@
-import importlib.util, pathlib, sys
+import pathlib, sys, types
 
 # The asset has a hyphen in its filename, so it cannot be imported by name.
 ASSET = (pathlib.Path(__file__).resolve().parent.parent
          / "skills/bootstrapping-a-system-of-record/assets/record-check.py")
-_spec = importlib.util.spec_from_file_location("record_check", ASSET)
-record_check = importlib.util.module_from_spec(_spec)
-_spec.loader.exec_module(record_check)
+# Executed from source rather than imported. importlib caches bytecode beside
+# the asset, and a stale cache made this suite report 47 passing tests against
+# a version of the file that no longer existed - the one failure a test suite
+# must never have, since it is the thing everything else here is checked by.
+record_check = types.ModuleType("record_check")
+record_check.__file__ = str(ASSET)
+exec(compile(ASSET.read_text(encoding="utf-8"), str(ASSET), "exec"), record_check.__dict__)
 
 ANCHORED = "# AGENTS.md\n<!-- record:perimeter -->\n<!-- record:routing -->\n"
 
