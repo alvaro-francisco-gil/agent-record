@@ -121,3 +121,14 @@ loaded. So:
 - Say what a rule cannot do. The convention makes invention refusable, not impossible; the
   checker covers markers and anchors only; the hook catches the careless case, not a
   determined one. A skill that overclaims gets trusted exactly once.
+
+## Local agent discovery
+
+Claude Code and Codex read `AGENTS.md` directly. Use Claude Code 2.1.281 or
+newer; if a parent/local Claude instruction file shadows it, select
+`claude-md-and-agents-md` in `/config`.
+
+Published skill sources stay in `skills/`. `.agents/skills` points to that
+directory and `.claude/skills` points to `.agents/skills`, so local discovery
+and every plugin manifest use the same files. Preserve Git symlinks when
+cloning on Windows. Do not put copied skills in either discovery directory.
