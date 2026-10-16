@@ -6,5 +6,8 @@
   "homepage": "https://github.com/alvaro-francisco-gil/agent-record",
   "repository": "https://github.com/alvaro-francisco-gil/agent-record",
   "license": "MIT",
-  "keywords": ["knowledge", "documentation", "evidence", "provenance", "record", "context"]
+  "keywords": ["knowledge", "documentation", "evidence", "provenance", "record", "context"],
+  "documentationUrl": "https://github.com/alvaro-francisco-gil/agent-record#readme",
+  "supportUrl": "https://github.com/alvaro-francisco-gil/agent-record/issues",
+  "privacyPolicyUrl": "https://github.com/alvaro-francisco-gil/agent-record#privacy-and-data"
 }

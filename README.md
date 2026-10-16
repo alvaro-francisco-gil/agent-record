@@ -95,6 +95,12 @@ cheap moment to get the perimeter right and every later one costs a history rewr
 /plugin install system-of-record
 ```
 
+On Claude Code 2.1.275 or later, one step does both:
+
+```
+/plugin install system-of-record --marketplace alvaro-francisco-gil/agent-record
+```
+
 **Codex / Cursor** — the repo ships `.codex-plugin/` and `.cursor-plugin/` manifests that
 point at the same `skills/` directory.
 
