@@ -189,6 +189,48 @@ becomes a fact the next proposal can use.
 Note what the record bought that is not visible in the paragraph: the next agent, in six
 months, does not have to ask again.
 
+## Try it
+
+After installing:
+
+- "Set up this repo to hold my career record." The bootstrap skill interviews you one
+  question at a time, asks what is sensitive and whether the repo is public before anything
+  is committed, then scaffolds the agents file, the checker and the pre-commit hook.
+- "Draft a two-paragraph bio for a conference programme from my record." Every claim comes
+  from a source file. Where the record has no answer, the draft says so as a question
+  instead of filling the gap.
+- "I led the migration project from March to September last year. Add that." The fact is
+  written to the right source file first, then used, so the next session doesn't ask again.
+
+## Privacy and data
+
+The skills are Markdown instructions and make no network requests. The plugin collects
+nothing and sends nothing anywhere. The bootstrap skill copies two small scripts into your
+repo, `scripts/record-check.py` (a Python linter with no dependencies) and a pre-commit
+hook in `.githooks/`, and both run only locally. Your record stays in your own repo, under
+your control. The perimeter step exists so you decide what may be committed before the
+first commit.
+
+## Troubleshooting
+
+- **The pre-commit hook doesn't run.** `core.hooksPath` is local git config, so a fresh
+  clone has no perimeter check until you run `git config core.hooksPath .githooks`. Check
+  with `git config core.hooksPath`; it should print `.githooks`. The hook also needs its
+  executable bit (`chmod +x .githooks/pre-commit`).
+- **The hook fails with a syntax error.** Its path and content patterns were left as
+  placeholders. Re-run the bootstrap's perimeter question, or fill them in by hand.
+- **`record-check.py` reports a missing anchor.** The agents file must carry both anchors
+  the bootstrap wrote. Restore them rather than deleting the check.
+- **An update didn't arrive.** Claude Code updates only when the plugin's `version`
+  changes. Run `/plugin` and update the marketplace.
+
+## Support
+
+Questions and bugs:
+[GitHub issues](https://github.com/alvaro-francisco-gil/agent-record/issues). Report
+security problems privately through
+[GitHub security advisories](https://github.com/alvaro-francisco-gil/agent-record/security/advisories/new).
+
 ## Layering
 
 The skill defines the convention and nothing else. Everything specific to your repo — which
