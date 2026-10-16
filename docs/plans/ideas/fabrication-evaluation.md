@@ -1,10 +1,10 @@
-# A fabrication eval
+# A fabrication evaluation
 
 **Priority:** high
 
 ## Goal
 
-Measure, with `claude plugin eval`, how often an agent invents facts in an outgoing
+Measure, with Claude Code's plugin evaluation runner, how often an agent invents facts in an outgoing
 document with the plugin installed versus without it, and publish the numbers in the
 README.
 
