@@ -52,9 +52,12 @@ class Repo:
     def __init__(self, path, forbidden=FORBIDDEN_PATHS, content=CONTENT_PATTERN):
         self.path = path
         (self.path / ".githooks").mkdir(parents=True)
-        # Never inherit the machine's git identity, hooks, templates or aliases.
-        self.env = dict(os.environ)
-        self.env.update(
+        # Never inherit the machine's environment: no git identity, hooks,
+        # templates, aliases or tokens. PATH holds only where git and sh live,
+        # plus the system default for the tools the hook calls.
+        tool_dirs = {str(pathlib.Path(shutil.which(t)).parent) for t in ("git", "sh")}
+        self.env = dict(
+            PATH=os.pathsep.join(sorted(tool_dirs) + [os.defpath]),
             HOME=str(path),
             XDG_CONFIG_HOME=str(path / ".config"),
             GIT_CONFIG_GLOBAL=os.devnull,
