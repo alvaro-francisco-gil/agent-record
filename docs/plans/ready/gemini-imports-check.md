@@ -1,7 +1,6 @@
 # Check that GEMINI.md imports every skill
 
 **Priority:** medium — the plugin once shipped to Gemini with half its skills (fixed in `538d153`), and AGENTS.md says nothing fails when it happens
-**Gate:** decision:Should `validate.py` fail unless `GEMINI.md` carries exactly one `@` import per directory under `skills/`, each resolving to a real `SKILL.md`?
 
 **Goal:** Make the second entry point impossible to forget: a skill added to, renamed in or removed from `skills/` without the matching `GEMINI.md` line fails the gate instead of silently not reaching Gemini users.
 
@@ -35,7 +34,7 @@ As of 2026-10-17:
 
 ## Approval
 
-**Needs your yes** — should `validate.py` fail on a `GEMINI.md` that does not import exactly the skills under `skills/`? Recommended answer: yes, because the defect already shipped once and AGENTS.md itself names the absence of a failing check as the problem.
+Decided 2026-10-17 (Álvaro): yes — Should `validate.py` fail unless `GEMINI.md` carries exactly one `@` import per directory under `skills/`, each resolving to a real `SKILL.md`?
 
 ## Out of scope
 

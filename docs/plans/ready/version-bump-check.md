@@ -1,7 +1,6 @@
 # Fail validation when shipped content changes without a version bump
 
 **Priority:** medium — two content fixes have already landed unbumped after a release, and the rule that catches this today is a sentence in AGENTS.md
-**Gate:** decision:Should `validate.py` (and CI) fail when a change under `skills/` or `GEMINI.md` lands without a new `version` in `.claude-plugin/plugin.json`?
 
 **Goal:** Turn AGENTS.md's releasing rule ("a content change that does not bump that version never reaches existing users") from a convention into a check, so an installed user is never left on a cached copy while the repo looks fixed.
 
@@ -40,7 +39,7 @@ As of 2026-10-17:
 
 ## Approval
 
-**Needs your yes** — should a shipped change without a version bump fail `validate.py` and CI? Recommended answer: yes, because the rule is already binding in AGENTS.md, it has been missed twice, and the only cost is a failure message that names the fix.
+Decided 2026-10-17 (Álvaro): yes — Should `validate.py` (and CI) fail when a change under `skills/` or `GEMINI.md` lands without a new `version` in `.claude-plugin/plugin.json`?
 
 ## Out of scope
 

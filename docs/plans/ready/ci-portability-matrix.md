@@ -1,7 +1,6 @@
 # Run the shipped assets' tests on macOS and an old Python
 
 **Priority:** medium — the assets ship to strangers' machines, a BSD-vs-GNU defect has already reached the documented health check unnoticed, and CI runs one OS and one Python
-**Gate:** decision:Should CI run the test suite on macOS as well as Ubuntu, and on a declared minimum Python 3 as well as 3.12, with that minimum stated in the README?
 
 **Goal:** Back the claims that `record-check.py` "must run on a bare Python 3" and that the perimeter hook (`#!/bin/sh`, installed and run as `sh .githooks/pre-commit`) works on adopters' machines, with evidence a build can fail on, instead of the author's single Linux machine.
 
@@ -37,7 +36,7 @@ As of 2026-10-17:
 
 ## Approval
 
-**Needs your yes** — should CI run on macOS and on a declared minimum Python, and should the README state that minimum? Recommended answer: yes, because the assets' portability is a promise made to strangers, it has already failed once on macOS, and the cost is CI minutes.
+Decided 2026-10-17 (Álvaro): yes — Should CI run the test suite on macOS as well as Ubuntu, and on a declared minimum Python 3 as well as 3.12, with that minimum stated in the README?
 
 ## Out of scope
 
