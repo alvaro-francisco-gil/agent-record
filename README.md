@@ -101,21 +101,36 @@ On Claude Code 2.1.275 or later, one step does both:
 /plugin install system-of-record --marketplace alvaro-francisco-gil/agent-record
 ```
 
-**Codex / Cursor** — the repo ships `.codex-plugin/` and `.cursor-plugin/` manifests that
-point at the same `skills/` directory.
+**Codex**
+
+```
+codex plugin marketplace add alvaro-francisco-gil/agent-record
+codex plugin add system-of-record@agent-record
+```
+
+Codex's default `workspace-write` sandbox keeps `.git/config` read-only, so the bootstrap
+cannot run `git config core.hooksPath .githooks` itself. It says so; run that one command
+yourself before the first commit.
+
+**Cursor** — the repo ships a `.cursor-plugin/` manifest that points at the same `skills/`
+directory.
 
 **Any other agent** — clone the repo and point your agent at `skills/`, or copy a skill
 directory into wherever your tool keeps skills. Each skill is a single Markdown file with
 YAML frontmatter; the bootstrap skill's assets are one Python script, one shell script and
 one Markdown template, none with third-party dependencies.
 
-> **Verified in Claude Code; inferred elsewhere.** This marketplace has been added from
-> GitHub and the plugin installed from it, and `claude plugin details` reports both skills
-> in the component inventory. That is one tool. The Codex, Cursor and Gemini manifests
-> follow the shape a published plugin uses and `scripts/validate.py` checks that each one
-> parses as JSON, that every skill's frontmatter is loadable and names its own directory,
-> and that the version has not drifted across the four manifests that carry one — but it
-> does not check a manifest against any schema, and **no Codex, Cursor or Gemini install
+> **Verified in Claude Code and Codex; inferred elsewhere.** In Claude Code this marketplace
+> has been added from GitHub and the plugin installed from it, and `claude plugin details`
+> reports both skills in the component inventory. In Codex (codex-cli 0.153.0, 2026-10-20)
+> the marketplace adds from GitHub, both skills are listed, and an unprompted "set this
+> folder up as the record of my studio" ran the bootstrap interview one question at a time,
+> copied `record-check.py` unchanged, filled the hook template, and the hook then blocked a
+> staged contact detail and a file under the private directory. The Cursor and Gemini
+> manifests follow the shape a published plugin uses and `scripts/validate.py` checks that
+> each one parses as JSON, that every skill's frontmatter is loadable and names its own
+> directory, and that the version has not drifted across the four manifests that carry one
+> — but it does not check a manifest against any schema, and **no Cursor or Gemini install
 > has been observed.** If one misbehaves, open an issue.
 
 ## What the tooling covers, and what it cannot
