@@ -1,6 +1,8 @@
 # Starter packs per domain
 
 **Priority:** medium
+**Gate:** blocked:first real bootstrap from a clean install (recheck 2026-11-15)
+**Next:** in the same clean-install bootstrap, confirm a pack is offered after question 1, its rows are offered one at a time, and only justified skills are proposed
 
 **Goal:** The bootstrap offers a starting routing table and set of questions per domain,
 so the interview starts from a sensible shape instead of a blank page. A record stays
@@ -68,3 +70,9 @@ sale, a regulatory approval.
   separate plugin maintained by someone who files those returns.
 - Packs narrowing the interview too early. Resolved: the pack is offered after question
   1, and question 4 overrides every row.
+
+## Handoff
+
+Built in 1.3.0 (2026-10-24). Verified so far only by `validate.py`, the test suite and a
+scratch run of the copied assets; this repo's bar for "verified" is a clean install with
+the behaviour observed. Retire once that bootstrap is seen to work.

@@ -1,45 +1,42 @@
-# A register for dated obligations
+# Obligations register: reaching people outside a session
 
 **Priority:** medium
 
 ## Goal
 
-Ship an optional register of every dated obligation that costs something when missed,
-plus a dependency-free script that lists what is overdue or closing soon, so a deadline
-in a record stops depending on someone rereading the right file.
+A date in a record's obligations register reaches its owner before it closes, even when
+nobody opens an agent session that week.
 
 ## Context
 
-Records hold dates with penalties attached: tax filings, insurance renewals, inspection
-due dates, certificate and domain expiries, claim windows. The convention routes each
-fact to one place, but a date written in prose is only seen when someone opens that
-file. In one adopter's record, a filing deadline that a plan tracked in prose was still
-missed. That record now keeps one machine-readable register that a script reads at the
-start of every session, and the prose links to it instead of restating the date.
+1.3.0 shipped the register itself: `assets/obligations.md` (a Markdown table, so the
+script needs no YAML parser) and `assets/agenda.py`, which lists overdue and upcoming
+rows and exits 1 when something is overdue. The bootstrap installs both when the
+interview surfaces a dated obligation, and the agents file tells each session to run the
+agenda first.
 
-This is the convention's own single-source rule applied to time. It generalises to
-every pack in `domain-starter-packs`: a vehicle has inspections and renewals, a business
-has filings, a career has certificate expiries.
+The gap is everything outside a session. In one adopter's record, a filing deadline that
+was tracked in prose was still missed, because nothing reached out. That record now sends
+itself chat alerts through its own server, which strangers won't have. The people this
+convention now targets (a vehicle owner, someone newly self-employed) may open a session
+once a month.
 
 ## Design / approach
 
-- `assets/obligations.yaml`: a header documenting the fields (`id`, `what`, `opens`,
-  `closes`, `if_missed`, `how`, `explained_in`, `done`, optional `only_if`, `group`),
-  with no entries.
-- `assets/agenda.py`: copied unchanged, bare Python 3, no dependencies. It reads the
-  register and prints overdue items and items closing within N days. It exits non-zero
-  when something is overdue, so a hook or CI can use it.
-- The bootstrap asks, during question 4, "what in this record has a date that costs you
-  if you miss it?" A yes installs the register and adds a line to the agents file: run
-  the agenda at the start of every session and raise what it lists before the task.
-- Recurring obligations are written out one occurrence per period, a year ahead. Simple
-  to read, and the script stays trivial.
+Candidates, cheapest first:
+
+- **`agenda.py --ics`**: export the open rows as an iCalendar file with alarms (say 7 and 2
+  days before) that the human imports into the calendar they already use. No server. The
+  cost is that a re-import is needed whenever a row changes.
+- **A scheduled CI job** on the record's host that runs the agenda and opens an issue
+  when something is due. The host then emails the owner. It needs no server, but needs
+  the repo on a host with scheduled jobs.
+- **Agent-side scheduling**, where the person's agent app supports scheduled tasks: a
+  weekly task that runs the agenda and reports. Depends on the tool.
 
 ## Open questions
 
-- **Alerts outside a session.** The agenda only helps when a session starts. Should push
-  delivery (chat bot, email, calendar feed) be in scope, and which channel works for
-  someone who never opens a terminal? An `.ics` export is the most portable.
-- Does `agenda.py` need tests in `tests/` like `record-check.py`? It ships to strangers,
-  so it probably does.
-- Does it belong in the bootstrap or in a separate skill a record adopts later?
+- Which of these works for someone who never opens a terminal? The `.ics` export looks
+  like the best first step.
+- Should alerts follow a fixed ladder (7 days, 2 days, the last day, then weekly while
+  overdue) or be configurable per row?

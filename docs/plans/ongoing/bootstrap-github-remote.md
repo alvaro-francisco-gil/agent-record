@@ -1,6 +1,8 @@
 # The bootstrap ends with a remote, private by default
 
 **Priority:** medium
+**Gate:** blocked:first real bootstrap from a clean install (recheck 2026-11-15)
+**Next:** install system-of-record 1.3.0 from the marketplace on a clean machine, bootstrap a record, and confirm the repo is created private and its visibility read back
 
 **Goal:** A bootstrapped record ends up in a hosted repo the human owns, created by the
 agent, private unless the human explicitly asks for public.
@@ -50,3 +52,9 @@ skill is added. Gate: `python3 scripts/validate.py && python3 -m pytest -q`.
 - Inviting collaborators. The human does that on the host, as an access decision.
 - Organisation-owned repos. The bootstrap creates under the authenticated user; an
   org is the human's call, passed as `<org>/<name>`.
+
+## Handoff
+
+Built in 1.3.0 (2026-10-24). Verified so far only by `validate.py`, the test suite and a
+scratch run of the copied assets; this repo's bar for "verified" is a clean install with
+the behaviour observed. Retire once that bootstrap is seen to work.

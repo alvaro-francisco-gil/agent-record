@@ -56,11 +56,13 @@ substitute an invented example for the missing one.
 - **The gate before every commit** is `python3 scripts/validate.py && python3 -m pytest -q`.
   `validate.py` catches the failures that only surface when an agent tries to load the
   plugin — unparseable frontmatter, a name that disagrees with its directory, version drift
-  across manifests. The tests cover `record-check.py`, which ships to strangers and is the
-  only Python that does.
+  across manifests. The tests cover `record-check.py` and `agenda.py`, the only Python that
+  ships to strangers.
 - **Assets are shipped as they are copied.** `skills/bootstrapping-a-system-of-record/assets/`
-  holds files that land verbatim in someone else's repo. `record-check.py` is copied
-  unchanged, so it must run on a bare Python 3 with no dependencies;
+  holds files that land verbatim in someone else's repo. `record-check.py` and `agenda.py`
+  are copied unchanged, so they must run on a bare Python 3 with no dependencies (which is
+  why the obligations register is a Markdown table, not YAML). `packs/` and
+  `skill-catalogue.md` hold structure only, never an example fact;
   `pre-commit-perimeter.sh` ships with `<FORBIDDEN_PATTERNS>` and `<CONTENT_PATTERNS>`
   unfilled, which is deliberate — an unfilled path list is a syntax error, and a hook that
   dies loudly beats one that silently matches nothing.

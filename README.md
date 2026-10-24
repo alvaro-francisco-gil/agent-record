@@ -73,13 +73,22 @@ perimeter contains; it does not get to skip having one.
 | Skill | Purpose |
 |---|---|
 | `maintaining-a-system-of-record` | The convention. The six rules, how to tell a record layer from code, and what belongs to the adopting repo rather than to the skill. |
-| `bootstrapping-a-system-of-record` | The front door. Four interview questions, then a scaffold: the agents file, the routing destinations, the checker and a generated pre-commit hook. |
+| `bootstrapping-a-system-of-record` | The front door. Four interview questions, then a scaffold: the agents file, the routing destinations, the checker, a generated pre-commit hook, and a private GitHub repo. |
 
 Both ship in one install. The bootstrap skill runs once; the convention skill is what the
 repo lives by afterwards.
 
-**If you cannot name a document that comes out of your repo, stop here.** A record with no
-renderings is a notebook, and a notebook does not need this convention.
+The bootstrap starts from a **starter pack** when one fits: career, self-employed business,
+or a vehicle or other asset. A pack is a menu of routing rows and questions with no facts
+in it, and the interview overrides every row. After the interview, it offers only the
+skills your answers justify, installed at project scope so every clone gets them. If
+anything in the record has a deadline, it adds an **obligations register**: a Markdown
+table of dates and a script that lists what is overdue or closing soon.
+
+**If nobody ever receives a document from your record, stop here.** A record with no
+renderings is a notebook, and a notebook does not need this convention. Renderings
+include the bundle you put together for an inspector, an insurer, a buyer or an
+accountant.
 
 The bootstrap interview is four questions, asked one at a time, each answer written down
 before the next is asked. **Question 3 — what is sensitive, and is this repo public — is a
@@ -165,6 +174,12 @@ that rule unexamined — reported clean because the check could not see it, rath
 because it was. `core.hooksPath` is local config and is never committed, so a fresh clone
 has no perimeter check until someone sets it again on that machine.
 
+`scripts/agenda.py`, copied only when the record has deadlines, reads the table in
+`obligations.md` and lists what is overdue, then what closes in the next 45 days. It exits
+1 when something is overdue or the table is malformed. It reaches nobody on its own: the
+agents file tells every session to run it first, and a record nobody opens is still a date
+nobody reads.
+
 **The evidence rule is the one no script can check.** No tool can read "led a team of six"
 and know whether the team had six people. That is why a passing check suite is never
 evidence that a document is honest — the mechanical checks exist to cover the mechanical
@@ -217,6 +232,8 @@ After installing:
 - "Set up this repo to hold my career record." The bootstrap skill interviews you one
   question at a time, asks what is sensitive and whether the repo is public before anything
   is committed, then scaffolds the agents file, the checker and the pre-commit hook.
+- "Set up a repo for everything about my van." The bootstrap starts from the vehicle pack,
+  asks which dates matter (inspection, insurance), and puts them in the register.
 - "Draft a two-paragraph bio for a conference programme from my record." Every claim comes
   from a source file. Where the record has no answer, the draft says so as a question
   instead of filling the gap.
@@ -226,9 +243,11 @@ After installing:
 ## Privacy and data
 
 The skills are Markdown instructions and make no network requests. The plugin collects
-nothing and sends nothing anywhere. The bootstrap skill copies two small scripts into your
-repo, `scripts/record-check.py` (a Python linter with no dependencies) and a pre-commit
-hook in `.githooks/`, and both run only locally. Your record stays in your own repo, under
+nothing and sends nothing anywhere. The bootstrap skill copies small scripts into your
+repo, `scripts/record-check.py` (a Python linter with no dependencies), a pre-commit hook
+in `.githooks/`, and `scripts/agenda.py` if the record has deadlines, and all of them run
+only locally. At the end it creates a GitHub repo with your own `gh` login, **private
+unless you explicitly ask for public**, and pushes to it. Your record stays in your own repo, under
 your control. The perimeter step exists so you decide what may be committed before the
 first commit.
 

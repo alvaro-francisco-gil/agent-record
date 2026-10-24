@@ -1,6 +1,6 @@
 ---
 name: bootstrapping-a-system-of-record
-description: "Use when setting up a repo, or a layer inside one, to hold the authoritative record of a real person, organisation, business or research project — \"I want my agent to know my business\", \"set up a repo for my career\", adopting the system-of-record convention. Interviews, declares the perimeter before anything is committed, then scaffolds."
+description: "Use when setting up a repo, or a layer inside one, to hold the authoritative record of a real person, organisation, business, asset or research project — \"I want my agent to know my business\", \"set up a repo for my career\", \"a place for everything about my van\", \"I just became self-employed, help me keep track\", adopting the system-of-record convention. Interviews, declares the perimeter before anything is committed, scaffolds from a starter pack, installs the skills the answers justify, and creates a private GitHub repo."
 ---
 
 # Bootstrapping a system of record
@@ -60,8 +60,18 @@ invoices, grant sections, reports, decks.
 The answer fills "What this repo is" and names the entry source file, the one an agent reads
 before anything else.
 
-If they cannot name a single document that comes out of the repo, say so: a record with no
-renderings is a notebook, and a notebook does not need this convention.
+People rarely recognise their renderings, so ask **"who do you ever have to send documents
+to?"** An inspector, an insurer, a buyer, an accountant, a tax office: the bundle assembled
+for any of them is a rendering. Only if nobody ever receives anything from the record,
+say so: a record with no renderings is a notebook, and a notebook does not need this
+convention.
+
+**Then pick a starter pack.** `assets/packs/` holds one file per domain, each a menu of
+routing rows, typical renderings, domain questions and sensitive categories, with no facts
+in it: `career.md`, `self-employed-business.md`, `vehicle-or-asset.md`. Name the closest one
+to the human, or none, and read it. Its domain questions join the interview where they fit,
+its sensitive categories become prompts for question 3, and its rows are where question 4
+starts. A pack is a menu, never a layout to install whole.
 
 ### Question 2 — Is it the whole repo, or a layer inside one? Where does that layer start?
 
@@ -83,7 +93,13 @@ deleted and rewritten in another language?** If yes, it belongs to the record.
 it, because the hook is generated from them:
 
 1. **Public or private** — and private is not the same as safe. Access widens over a repo's
-   life and history never narrows.
+   life and history never narrows. Ask it as a default, not as an open choice: *"This will
+   live in a GitHub repo under your account, private. Do you want it public instead?"*
+   **Silence, "I don't know" or "whatever" means private.** Public only on an explicit yes,
+   and before accepting it, say that every file ever committed will be readable by anyone,
+   forever. Propose the repo name from question 1's subject, in kebab-case, and confirm it.
+   If they already use another host, use that instead; GitHub is the default, not a
+   requirement.
 2. **The categories that never enter, and where they live instead.** This is prose, not a
    directory listing. It becomes the perimeter section.
 3. **Path patterns that must never be committed** — these fill `<FORBIDDEN_PATTERNS>` in the
@@ -118,8 +134,30 @@ they are the ones the repo actually receives. Four to ten rows is a healthy firs
 Thirty speculative rows is a table nobody reads, and every row is a directory the scaffold
 then has to create.
 
+If a pack was picked, offer its rows one at a time and let them keep, rename or drop each.
+The rows that arrived unprompted still come first.
+
 Tell them the rule that keeps it alive: **add a row the first time a fact arrives with
 nowhere to go**, rather than inventing a one-off destination for it.
+
+Then ask the question that decides the obligations register: **"What in this record has a
+date that costs you if you miss it?"** Filings, renewals, inspections, expiries, payment
+deadlines. Any yes means the register goes in (scaffold step 4), and each date they named
+becomes its first rows.
+
+## Skills to offer
+
+`assets/skill-catalogue.md` lists what the bootstrap may install. **Propose only what the
+answers justify, one reason each, in their words:** "you mentioned the inspection and the
+insurance renewal → the obligations register"; "the conversion will run for months →
+plans". `system-of-record` itself is always offered at project scope, so every clone loads
+the convention. Install what they accept, as the catalogue describes, and nothing else.
+
+- **Anti-pattern: installing the whole catalogue.** Every loaded skill competes for
+  attention in every session. A skill nobody needed is noise from then on.
+- **Anti-pattern: offering a skill the interview gave no reason for.** If you can't name
+  the answer that justifies it, don't offer it. Skills get added the way routing rows do:
+  the first time a need shows up.
 
 ## The scaffold
 
@@ -154,21 +192,50 @@ point of the ordering.
    when it appears in a code span. Quote the syntax in a fenced block to keep it out of the
    worklist entirely. The one thing this checker must never do is report a clean record on
    a repo full of open questions.
-4. **`.githooks/pre-commit`.** From `assets/pre-commit-perimeter.sh`, placeholders filled
+4. **The obligations register**, only if question 4 surfaced a dated obligation. Copy
+   `assets/obligations.md` to the repo root and `assets/agenda.py` to `scripts/agenda.py`,
+   both unchanged. Write one row per date they named, with `[unknown: ...]` in a cell
+   rather than a guessed date. Add a routing row, "dated obligations → `obligations.md`",
+   and one line near the top of the agents file: *run `python3 scripts/agenda.py` at the
+   start of every session and raise what it lists before the task.* An agenda nobody runs
+   is a date nobody reads. `python3 scripts/agenda.py --check` must pass. A row with an
+   `[unknown:]` date fails it by design, so ask for the date before the first commit, or
+   leave that obligation in prose with its marker until it is known.
+   - **Never fill a date from general knowledge.** Filing calendars, inspection intervals
+     and renewal dates depend on the jurisdiction, the case and the year. A plausible date
+     in a register is worse than none, because the agenda then reports it as tracked.
+5. **`.githooks/pre-commit`.** From `assets/pre-commit-perimeter.sh`, placeholders filled
    from question 3, then `chmod +x .githooks/pre-commit` and
    `git config core.hooksPath .githooks`. This is the repo-specific half, and it is
    generated rather than shipped because every perimeter rule depends on a layout only this
    repo has. A shipped generic version would have to guess, and a false positive teaches
    people to reach for `--no-verify`, which is worse than no hook at all.
-5. **Verify the hook runs** — the next section, before anything is committed.
-6. **The first source file, and name it the entry point.** If the interview surfaced a real
+6. **Verify the hook runs** — the next section, before anything is committed.
+7. **The first source file, and name it the entry point.** If the interview surfaced a real
    fact, write it down: the claim, where it came from, and an `[unknown: ...]` marker
    wherever a specific is missing. Say in the agents file that this file is read first —
    a record whose reader has to guess where the current truth lives gets reconstructed from
    whatever document looks most finished.
    One true, sourced fact with one honest gap in it demonstrates the evidence rule and the
    markers together, which is worth more than any amount of prose describing them.
-7. **Run `python3 scripts/record-check.py`, then commit.**
+8. **The skills they accepted**, installed at project scope as `assets/skill-catalogue.md`
+   describes, so `.claude/settings.json` goes into the first commit.
+9. **Run `python3 scripts/record-check.py`, then commit.**
+10. **Create the remote and push**, after the first commit and after hook verification
+    step 4, never earlier. Pushing is not a way to save progress mid-interview.
+    1. `gh auth status`. If `gh` is missing or not logged in, walk the human through
+       installing it and running `gh auth login` themselves. **A token never passes
+       through the conversation.**
+    2. `gh repo create <name> --private --source . --remote origin --push`, or
+       `--public` on the explicit yes from question 3.
+    3. `gh repo view --json visibility` and say the visibility back to the human, in
+       plain words.
+
+    Without `gh`, the human creates an **empty** repo on the host's website (no README,
+    no licence, so the first push does not conflict) and gives you its URL. Then
+    `git remote add origin <url>` and `git push -u origin HEAD`. A remote makes a second
+    clone likely, and a second clone has no hook: this is when the agents file's
+    `core.hooksPath` note starts to matter, so say it again.
 
 - **Anti-pattern: filling the first source file with a worked example.** A plausible invented
   fact in a record is indistinguishable from a real one six months later. Either a fact from
@@ -332,4 +399,9 @@ Then, in order:
   file and block another — including a file renamed into a forbidden path, which is the way
   a file most often arrives in one.
 - Every routing destination exists.
+- If a dated obligation came up, `obligations.md` holds it and `scripts/agenda.py --check`
+  passes.
+- Every installed skill traces to an interview answer, and `.claude/settings.json` names
+  its marketplace.
+- The remote exists, and its visibility was read back from the host and told to the human.
 - The human has heard, in plain words, what the perimeter covers and what the hook cannot do.
