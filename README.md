@@ -14,6 +14,8 @@ account of the real thing, so that every claim in an outgoing document has somew
 to come from. It does not make invention impossible. **It makes invention refusable**, which
 is the most any convention can offer and considerably more than nothing.
 
+**Not a programmer?** [Start here](START.md) · [Empieza aquí](START.es.md): one message to paste, and the agent does the rest.
+
 This marketplace packages that convention as a skill, for Claude Code, Codex, Cursor, Gemini
 and anything else that can read a `SKILL.md`.
 
