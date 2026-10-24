@@ -12,7 +12,7 @@ iniciada en tu propia cuenta de Claude, y una cuenta gratuita de
 
 **Después:** abre Claude Code, copia el mensaje de abajo (el botón de copiar está en su
 esquina superior derecha), pégalo y responde a sus preguntas. Pregunta una cosa cada vez,
-y no se guarda nada hasta que hayáis acordado qué no debe entrar nunca. Tu registro es
+y no se guarda nada hasta que hayas decidido qué no debe entrar nunca. Tu registro es
 privado salvo que tú decidas lo contrario.
 
 ```text
