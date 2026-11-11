@@ -1,8 +1,8 @@
 # Ship the plugin without scripts, so the Anthropic directory can list it
 
 **Priority:** high — System of Record cannot be listed in Anthropic's plugin directory until no script is left in this repo
-**Gate:** decision:Álvaro reviews the unpushed 1.4.0 commits on `main` before they are pushed (recheck 2026-11-13)
-**Next:** push `main`, watch the CI run, then after ~6 hours read System of Record's page at claude.ai/directory/manage and record the outcome in the workspace plan
+**Gate:** blocked:Anthropic directory picks up 1.4.0 (pushed 2026-11-11 after the workspace agent's review; recheck 2026-11-12)
+**Next:** confirm the first CI run passes (its `yq` frontmatter step has never run before), then read System of Record's page at claude.ai/directory/manage and record the outcome in the workspace plan
 
 **Goal:** One repo and one plugin, with no file in it that the directory refuses. The setup
 skill keeps installing the same three checks, but the adopter's agent writes them from a
