@@ -13,8 +13,9 @@ Cursor, Gemini, and anything else that can read a `SKILL.md`. One plugin,
   greppable uncertainty markers, a fact-routing table, and a declared perimeter.
 - [skills/bootstrapping-a-system-of-record/SKILL.md](skills/bootstrapping-a-system-of-record/SKILL.md)
   — the front door. Four interview questions, gated on the perimeter question, then a
-  scaffold: the agents file, the routing destinations, `record-check.py` and a generated
-  pre-commit hook.
+  scaffold: the agents file, the routing destinations, and the checks (`record-check.py`,
+  a pre-commit hook, `agenda.py` when there are deadlines), which the adopter's agent writes
+  from `assets/checks.md` and proves against its acceptance tests.
 
 **Read both before changing either.** They overlap on purpose — the bootstrap skill is the
 convention made concrete in one repo — and a change to a rule in one that is not reflected
@@ -53,19 +54,37 @@ substitute an invented example for the missing one.
   and the described behaviour observed — not that the Markdown reads correctly. The README
   says plainly that this has not yet happened in any tool; keep that note honest the moment
   it does.
-- **The gate before every commit** is `python3 scripts/validate.py && python3 -m pytest -q`.
-  `validate.py` catches the failures that only surface when an agent tries to load the
-  plugin — unparseable frontmatter, a name that disagrees with its directory, version drift
-  across manifests. The tests cover `record-check.py` and `agenda.py`, the only Python that
-  ships to strangers.
-- **Assets are shipped as they are copied.** `skills/bootstrapping-a-system-of-record/assets/`
-  holds files that land verbatim in someone else's repo. `record-check.py` and `agenda.py`
-  are copied unchanged, so they must run on a bare Python 3 with no dependencies (which is
-  why the obligations register is a Markdown table, not YAML). `packs/` and
-  `skill-catalogue.md` hold structure only, never an example fact;
-  `pre-commit-perimeter.sh` ships with `<FORBIDDEN_PATTERNS>` and `<CONTENT_PATTERNS>`
-  unfilled, which is deliberate — an unfilled path list is a syntax error, and a hook that
-  dies loudly beats one that silently matches nothing.
+- **No file in this repo may be anything but Markdown, plain text, JSON, YAML or a PNG,
+  JPEG, GIF, WebP or ICO image, and no file may start with `#!`.** `LICENSE`, `.gitignore`,
+  empty `.gitkeep` files and the two skill symlinks are the only exceptions. Anthropic's
+  plugin directory unpacks the whole repo, dev tooling included, and refuses scripts,
+  programs and package-manager configs from an account that is not a verified
+  organisation; this one is personal and will stay so. **Never keep a script by pasting it
+  into Markdown or YAML**: a program in a code fence still ships code, and it dodges the
+  rule rather than meeting it. Describe behaviour and tests instead; a short command line in
+  a test scenario is fine, a function body is not. CI enforces the file types and the `#!`
+  rule.
+- **The gate** is `.github/workflows/validate.yml`, which runs on every push and pull
+  request: every JSON file parses, every skill's frontmatter loads and names its directory,
+  `GEMINI.md` imports every skill, the four versions agree, a change under `skills/` or to
+  `GEMINI.md` comes with a version bump, no file is outside the allowed types or starts with
+  `#!`, and `claude plugin validate .` passes. Each step is a line or two of shell; run them
+  by hand before a commit that touches a manifest or a skill's frontmatter (they need `jq`
+  and mikefarah `yq`). Keep each step that short: a long program inside the YAML is the same
+  dodge as a script in Markdown.
+- **The checks are a specification, not code.**
+  `skills/bootstrapping-a-system-of-record/assets/checks.md` specifies `record-check.py`,
+  `agenda.py` and the perimeter hook, and lists the acceptance tests each must pass. The
+  adopter's agent writes them; this repo never holds an implementation. A behaviour change
+  is a change to the spec **and** a new or changed numbered test, in the same commit — the
+  tests are the only thing every adopter's checks share, and a lesson not written as a test
+  is a lesson the next freshly written checker will miss. Before releasing a change to
+  `checks.md`, dry-run it: an agent that has not seen any earlier implementation writes the
+  checks from the file alone, in a scratch repo outside this one, and runs every test.
+- **Assets land in someone else's repo.** `obligations.md` and `AGENTS-sections.md` are
+  copied and filled; the obligations register is a Markdown table, not YAML, so the agenda
+  needs nothing beyond a standard library. `packs/` and `skill-catalogue.md` hold structure
+  only, never an example fact.
 
 ## Single source of truth
 
@@ -77,9 +96,9 @@ happen, which is the failure this packaging exists to prevent.
 **`GEMINI.md` is the second entry point, and it is the one that silently ships half the
 plugin.** `gemini-extension.json` names it as the context file, and it imports each skill by
 path with an `@` line — so a skill added to `skills/` and not added there reaches no Gemini
-user, and nothing fails to tell anyone. It shipped that way once. **When the set of skills
-changes, `GEMINI.md` changes in the same commit**, and it carries one `@` line per skill,
-always.
+user. It shipped that way once. **When the set of skills changes, `GEMINI.md` changes in
+the same commit**, and it carries one `@` line per skill, always. CI now fails when a skill
+directory has no `@./skills/<name>/SKILL.md` line.
 
 The same applies to the rules themselves: they are stated in
 `maintaining-a-system-of-record` and referenced elsewhere. `README.md` restates them for a
@@ -100,9 +119,12 @@ grep -rn '"version"' .claude-plugin .codex-plugin .cursor-plugin gemini-extensio
 ```
 
 `.claude-plugin/marketplace.json` carries no `version` key **by design** — it is a catalogue,
-and the plugin it lists is versioned by `.claude-plugin/plugin.json`. `validate.py` reads all
-five manifests but compares only the versions it finds, so its `5 manifests` count is
-correct and is not a fifth place to bump.
+and the plugin it lists is versioned by `.claude-plugin/plugin.json`. CI compares exactly
+the four files above, so it is not a fifth place to bump.
+
+CI also fails a push or pull request that changes `skills/` or `GEMINI.md` without changing
+the version in `.claude-plugin/plugin.json`. It looks at the whole pushed range, so one bump
+anywhere in it is enough — which is what installed users actually receive.
 
 Renames go in the `renames` map in `.claude-plugin/marketplace.json`, which is
 **append-only** — old entries stay forever so migration chains keep resolving.

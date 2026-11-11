@@ -1,5 +1,8 @@
 name: validate
 
+# Every step is a line or two of shell. This repo holds no scripts (AGENTS.md says why),
+# and a long program inside this file would be the same thing as a script.
+
 on:
   push:
     branches: [main]
@@ -10,9 +13,44 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
         with:
-          python-version: '3.12'
-      - run: pip install pyyaml pytest
-      - run: python3 scripts/validate.py
-      - run: python3 -m pytest -q
+          fetch-depth: 0
+
+      - name: Only Markdown, text, JSON, YAML and images (plus LICENSE, .gitignore, .gitkeep, the skill symlinks)
+        run: "! git ls-files | grep -vE '\\.(md|txt|json|ya?ml|png|jpe?g|gif|webp|ico)$|^(LICENSE|\\.gitignore)$|(^|/)\\.gitkeep$|^\\.(agents|claude)/skills$'"
+
+      - name: "No file starts with #!"
+        run: |
+          git ls-files -z | while IFS= read -r -d '' f; do [ -L "$f" ] || [ "$(head -c2 "$f")" != '#!' ] || { echo "$f starts with #!"; exit 1; }; done
+
+      - name: Text is UTF-8 with no NUL bytes
+        run: |
+          git ls-files -z -- '*.md' '*.txt' '*.json' '*.yml' '*.yaml' LICENSE .gitignore | xargs -0 iconv -f UTF-8 -t UTF-8 > /dev/null
+          ! git ls-files -z -- '*.md' '*.txt' '*.json' '*.yml' '*.yaml' LICENSE .gitignore | xargs -0 grep -lP '\x00'
+
+      - name: Every JSON file parses
+        run: |
+          git ls-files -z -- '*.json' | xargs -0 -n1 jq empty
+
+      - name: Every skill's frontmatter loads, has a description, and names its directory
+        run: |
+          for d in skills/*/; do n=$(basename "$d"); [ "$(yq --front-matter=extract '.name' "${d}SKILL.md")" = "$n" ] && [ -n "$(yq --front-matter=extract '.description // ""' "${d}SKILL.md")" ] || { echo "${d}SKILL.md: frontmatter does not load, lacks a description, or its name is not $n"; exit 1; }; done
+
+      - name: GEMINI.md imports every skill, once, and nothing else
+        run: |
+          diff <(grep '^@' GEMINI.md | sort) <(for d in skills/*/; do echo "@./${d}SKILL.md"; done | sort)
+
+      - name: The four versions agree
+        run: |
+          test "$(jq -r .version .claude-plugin/plugin.json .codex-plugin/plugin.json .cursor-plugin/plugin.json gemini-extension.json | sort -u | wc -l)" -eq 1 || { grep -n '"version"' .claude-plugin/plugin.json .codex-plugin/plugin.json .cursor-plugin/plugin.json gemini-extension.json; exit 1; }
+
+      - name: A change to skills/ or GEMINI.md comes with a version bump
+        env:
+          BASE: ${{ github.event.pull_request.base.sha || github.event.before }}
+        run: |
+          if ! git cat-file -e "$BASE^{commit}" 2>/dev/null || git diff --quiet "$BASE" HEAD -- skills GEMINI.md; then exit 0; fi
+          [ "$(git show "$BASE:.claude-plugin/plugin.json" | jq -r .version)" != "$(jq -r .version .claude-plugin/plugin.json)" ] || { echo "skills/ or GEMINI.md changed since $BASE, but .claude-plugin/plugin.json is still $(jq -r .version .claude-plugin/plugin.json): bump all four manifests"; exit 1; }
+
+      - name: Claude Code validates the marketplace and plugin manifests
+        run: |
+          npx -y @anthropic-ai/claude-code@2.1.317 plugin validate . --strict

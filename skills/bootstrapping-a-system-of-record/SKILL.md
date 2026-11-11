@@ -164,11 +164,21 @@ the convention. Install what they accept, as the catalogue describes, and nothin
 In this order. The hook is installed and proven before the first commit, which is the entire
 point of the ordering.
 
+**The three checks are written, not copied.** This plugin ships no code. `assets/checks.md`
+specifies each check — what it does, its flags, exit codes and output, what it cannot do —
+and lists the acceptance tests it must pass. Write each check from that file, in the
+language it names unless the repo has a reason for another, run **every** acceptance test
+for it in a scratch directory outside the repo, and **do not commit until all of them
+pass.** The tests carry the lessons a freshly written checker misses: a renamed file, a
+path with an accent in it, a marker in backticks, an unclosed bracket. A check that passes
+most of them is a check with a known hole. If a test cannot be run as written, say so to
+the human rather than skipping it.
+
 1. **The agents file.** The filled template, both anchors intact, in the repo's own voice.
 2. **The directories.** One per routing destination, and nothing the table does not mention.
    Git does not track empty directories, so each gets a `.gitkeep`.
-3. **`scripts/record-check.py`.** Copied unchanged from this skill's assets. It is the
-   generic half of enforcement: it lints marker syntax and verifies both anchors, and it
+3. **`scripts/record-check.py`.** Written from `assets/checks.md` (section 1) and proven
+   against its tests. It is the generic half of enforcement: it lints marker syntax and verifies both anchors, and it
    never guesses what is sensitive, so it cannot fire on content. Unresolved markers are the
    worklist, not a failure. Pass `--agents-file`, `--inferred-marker` and `--unknown-marker`
    if the repo's answers differ from the defaults; pass the **same word twice** if the repo
@@ -177,7 +187,7 @@ point of the ordering.
 
    **Ask what the record is written in, and pass `--glob` for each.** It sweeps `*.md` by
    default, which is right for a record of prose and wrong for one kept in a ledger, a
-   registry or a notebook. Getting this wrong is quiet: an association's accounts adopting
+   registry or a notebook. Giving `--glob` replaces the default, so name `*.md` too. Getting this wrong is quiet: an association's accounts adopting
    this convention had 44 markers in Markdown and 534 in its beancount files and YAML
    registry, so the default swept 4% of the record and reported it clean. It
    skips every file named like the agents file, at any depth, reading the root one for the
@@ -193,8 +203,8 @@ point of the ordering.
    worklist entirely. The one thing this checker must never do is report a clean record on
    a repo full of open questions.
 4. **The obligations register**, only if question 4 surfaced a dated obligation. Copy
-   `assets/obligations.md` to the repo root and `assets/agenda.py` to `scripts/agenda.py`,
-   both unchanged. Write one row per date they named, with `[unknown: ...]` in a cell
+   `assets/obligations.md` to the repo root unchanged, and write `scripts/agenda.py` from
+   `assets/checks.md` (section 2), proven against its tests. Write one row per date they named, with `[unknown: ...]` in a cell
    rather than a guessed date. Add a routing row, "dated obligations → `obligations.md`",
    and one line near the top of the agents file: *run `python3 scripts/agenda.py` at the
    start of every session and raise what it lists before the task.* An agenda nobody runs
@@ -204,8 +214,9 @@ point of the ordering.
    - **Never fill a date from general knowledge.** Filing calendars, inspection intervals
      and renewal dates depend on the jurisdiction, the case and the year. A plausible date
      in a register is worse than none, because the agenda then reports it as tracked.
-5. **`.githooks/pre-commit`.** From `assets/pre-commit-perimeter.sh`, placeholders filled
-   from question 3, then `chmod +x .githooks/pre-commit` and
+5. **`.githooks/pre-commit`.** Written from `assets/checks.md` (section 3) with its two
+   settings as placeholders, proven against its tests on a scratch copy filled with the
+   test values, then written into the repo with the settings filled from question 3, then `chmod +x .githooks/pre-commit` and
    `git config core.hooksPath .githooks`. This is the repo-specific half, and it is
    generated rather than shipped because every perimeter rule depends on a layout only this
    repo has. A shipped generic version would have to guess, and a false positive teaches
@@ -220,7 +231,8 @@ point of the ordering.
    markers together, which is worth more than any amount of prose describing them.
 8. **The skills they accepted**, installed at project scope as `assets/skill-catalogue.md`
    describes, so `.claude/settings.json` goes into the first commit.
-9. **Run `python3 scripts/record-check.py`, then commit.**
+9. **Run `python3 scripts/record-check.py`, then commit** — only once every acceptance test
+   for every installed check has passed.
 10. **Create the remote and push**, after the first commit and after hook verification
     step 4, never earlier. Pushing is not a way to save progress mid-interview.
     1. `gh auth status`. If `gh` is missing or not logged in, walk the human through
@@ -245,8 +257,8 @@ point of the ordering.
 
 ## Verify the hook before declaring the bootstrap done
 
-The hook template ships broken on purpose. `<FORBIDDEN_PATTERNS>` unfilled is not valid
-shell, so the script dies; filled carelessly, it runs and matches nothing. **A dead hook is
+`assets/checks.md` makes a hook with an unfilled setting fail on every run; filled
+carelessly, it runs and matches nothing. **A dead hook is
 the worst outcome of this whole procedure** — the human believes they are protected and is
 not, and they find out from the history.
 
@@ -292,11 +304,10 @@ hook. Step 4 needs a file that is already committed, so run it after the first c
 nothing is committed yet, note it and come back to it, because it is the only step that
 covers the way a file most often arrives somewhere it should not be.
 
-Step 3 is the one people skip, and it is the one that fails quietly. An unfilled
-`<FORBIDDEN_PATTERNS>` is a syntax error and step 1 catches it; an unfilled
-`<CONTENT_PATTERNS>` parses, is non-empty, and matches nothing for the rest of the repo's
-life. **If the repo declared no content rules, check that the placeholder was replaced with
-an empty string** rather than left as `<CONTENT_PATTERNS>`, and skip step 3.
+Step 3 is the one people skip, and it is the one that fails quietly. A content pattern
+that was filled with something that can never match parses, runs and blocks nothing for the
+rest of the repo's life. **If the repo declared no content rules, check that the setting is
+an empty string** rather than a leftover `<CONTENT_PATTERNS>`, and skip step 3.
 
 **Build the probe value from the pattern this repo declared**, not from a generic one. A run
 of sixteen digits proves nothing against a rule written for an IBAN or a key prefix: the
@@ -304,15 +315,22 @@ hook stays silent, and silence at step 3 is indistinguishable from the broken ca
 to detect. A step that cries wolf is a step that gets skipped, and this is the step nobody
 can afford to skip.
 
+**The hook is in the first commit, and it holds its own content pattern.** A pattern with
+no regular-expression syntax in it — a literal prefix — matches the hook's own text, and
+the hook then refuses the commit that adds it. Write it so it cannot match itself
+(`ACME[-]INTERNAL`, not `ACME-INTERNAL`); `assets/checks.md` explains, and its HK17 proves
+it.
+
 The probe names carry a space on purpose. Received documents are named
 `Contract Signed 2024.pdf` and `Contrato Firmado Año.pdf`, and a hook that word-splits its
 file list, or that lets git C-quote a non-ASCII path, waves through exactly the class of
-file it exists to stop. The shipped version reads one path at a time and turns
-`core.quotePath` off; if you rewrite the loops, keep these probes and add an accented one.
+file it exists to stop. `assets/checks.md` requires one path per read with
+`core.quotePath` off, and its tests probe a space and an accent; if you edit the loops
+later, re-run them.
 
-Step 4 is there for the same reason and it is newer: the shipped version passes
-`--no-renames` and `--diff-filter=ACMRT`, so a moved file is listed as the add it really is.
-If you rewrite the `git diff --cached` line, keep both, and re-run step 4. Dropping `R`
+Step 4 is there for the same reason: `assets/checks.md` requires `--no-renames` and
+`--diff-filter=ACMRT`, so a moved file is listed as the add it really is. If you edit the
+`git diff --cached` line later, keep both, and re-run step 4. Dropping `R`
 alone changes nothing while `--no-renames` is there, because there is then never an `R`
 entry to list; it is dropping **both** that reopens the hole and lets a moved file through
 in silence. Keep the pair: each covers the other's absence. `T` is load-bearing on its own —
@@ -393,6 +411,8 @@ Then, in order:
 
 ## Done when
 
+- Every check installed was written from `assets/checks.md` and passed every one of its
+  acceptance tests before the first commit.
 - The agents file carries both anchors, and `python3 scripts/record-check.py` exits 0.
 - The perimeter section names what never enters and where it lives instead.
 - The hook is executable, `core.hooksPath` points at it, and it has been seen to pass one

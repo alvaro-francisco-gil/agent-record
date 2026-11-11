@@ -28,7 +28,7 @@ words, and ask me before anything that can't be undone. Talk to me in my languag
    myself. Never ask me for a password or a token.
 3. Install the plugin that knows how to build this:
    claude plugin install system-of-record --marketplace alvaro-francisco-gil/agent-record
-   (version 1.3.0 or later). If its skills don't appear, tell me to restart Claude and
+   (version 1.4.0 or later). If its skills don't appear, tell me to restart Claude and
    paste this message again; you'll pick up where we left off.
 4. Then use its bootstrapping-a-system-of-record skill, in a new folder under my home
    directory named after what we're recording. Follow it exactly, reusing what I already

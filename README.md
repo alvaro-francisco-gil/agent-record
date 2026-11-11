@@ -85,7 +85,7 @@ or a vehicle or other asset. A pack is a menu of routing rows and questions with
 in it, and the interview overrides every row. After the interview, it offers only the
 skills your answers justify, installed at project scope so every clone gets them. If
 anything in the record has a deadline, it adds an **obligations register**: a Markdown
-table of dates and a script that lists what is overdue or closing soon.
+table of dates and a small check that lists what is overdue or closing soon.
 
 **If nobody ever receives a document from your record, stop here.** A record with no
 renderings is a notebook, and a notebook does not need this convention. Renderings
@@ -128,27 +128,42 @@ directory.
 
 **Any other agent** — clone the repo and point your agent at `skills/`, or copy a skill
 directory into wherever your tool keeps skills. Each skill is a single Markdown file with
-YAML frontmatter; the bootstrap skill's assets are one Python script, one shell script and
-one Markdown template, none with third-party dependencies.
+YAML frontmatter, and the bootstrap skill's assets are Markdown too: templates, starter
+packs, and `checks.md`, the specification your agent writes the checks from. This repo
+contains no code.
 
 > **Verified in Claude Code and Codex; inferred elsewhere.** In Claude Code this marketplace
 > has been added from GitHub and the plugin installed from it, and `claude plugin details`
 > reports both skills in the component inventory. In Codex (codex-cli 0.153.0, 2026-10-20)
 > the marketplace adds from GitHub, both skills are listed, and an unprompted "set this
 > folder up as the record of my studio" ran the bootstrap interview one question at a time,
-> copied `record-check.py` unchanged, filled the hook template, and the hook then blocked a
-> staged contact detail and a file under the private directory. The Cursor and Gemini
-> manifests follow the shape a published plugin uses and `scripts/validate.py` checks that
-> each one parses as JSON, that every skill's frontmatter is loadable and names its own
-> directory, and that the version has not drifted across the four manifests that carry one
-> — but it does not check a manifest against any schema, and **no Cursor or Gemini install
-> has been observed.** If one misbehaves, open an issue.
+> installed the checker, filled the hook template, and the hook then blocked a staged
+> contact detail and a file under the private directory. **Those runs predate 1.4.0**, which
+> stopped shipping the checks as scripts: your agent now writes them from a specification
+> and proves them against its tests. That flow has been dry-run by an agent in a scratch
+> repo, and has not yet been observed through an install from the marketplace. The Cursor
+> and Gemini manifests follow the shape a published plugin uses, and this repo's CI checks
+> that every JSON file parses, that every skill's frontmatter is loadable and names its own
+> directory, that `GEMINI.md` imports every skill, and that the version has not drifted
+> across the four manifests that carry one — but it does not check the Cursor or Gemini
+> manifest against any schema, and **no Cursor or Gemini install has been observed.** If
+> one misbehaves, open an issue.
 
 ## What the tooling covers, and what it cannot
 
-The bootstrap scaffolds two checks, and both are deliberately narrow.
+The bootstrap installs up to three checks, and all of them are deliberately narrow.
 
-`scripts/record-check.py` — copied into the adopting repo, generic — lints marker syntax and
+**They are written, not copied.** This repo ships no code. `checks.md`, in the bootstrap
+skill's assets, specifies each check — behaviour, flags, exit codes, output, limits — and
+lists the acceptance tests it must pass: 36 for the checker, 18 for the agenda, 17 for the
+hook, each a scenario run in a scratch repo. Your agent writes each check from it, in
+Python and POSIX `sh` by default, and does not make the first commit until every test
+passes. That has a cost, and it is real: two repos that adopt the convention will not have
+byte-identical checkers, and a behaviour the tests do not pin down may differ between
+them. **The tests are what every adopter's checks share.** The reason is the directory
+Claude Code installs plugins from, which accepts scripts only from verified organisations.
+
+`scripts/record-check.py` — written in the adopting repo, generic — lints marker syntax and
 verifies that both anchors are present in the agents file. It never guesses what is
 sensitive, so it cannot fire on content, and it treats unresolved markers as the worklist
 rather than as failures. A bare `[unknown]` with no question is an error; forty open
@@ -156,8 +171,8 @@ questions are not. **It sweeps `*.md` unless you pass `--glob` for each format y
 is written in** — a record kept in a ledger, a registry or a notebook must say so, or the
 check reports a clean sweep of the 4% of it that happens to be Markdown. It skips dot-directories and
 every file named like the agents file — that is where the markers are defined — so a marker
-in a `.txt`, a `.csv`, a notebook or an agents file is invisible to it. Keep the record in
-Markdown, or widen the glob in your copy.
+in a `.txt`, a `.csv`, a notebook or an agents file is invisible to it unless a glob names
+it. Keep the record in Markdown, or pass the globs.
 
 A marker written in backticks still counts, because backticking them is the house style in
 more than one record; only a form that could never be a real marker (a bare word, an empty
@@ -176,7 +191,7 @@ that rule unexamined — reported clean because the check could not see it, rath
 because it was. `core.hooksPath` is local config and is never committed, so a fresh clone
 has no perimeter check until someone sets it again on that machine.
 
-`scripts/agenda.py`, copied only when the record has deadlines, reads the table in
+`scripts/agenda.py`, written only when the record has deadlines, reads the table in
 `obligations.md` and lists what is overdue, then what closes in the next 45 days. It exits
 1 when something is overdue or the table is malformed. It reaches nobody on its own: the
 agents file tells every session to run it first, and a record nobody opens is still a date
@@ -245,10 +260,10 @@ After installing:
 ## Privacy and data
 
 The skills are Markdown instructions and make no network requests. The plugin collects
-nothing and sends nothing anywhere. The bootstrap skill copies small scripts into your
+nothing and sends nothing anywhere. The bootstrap skill has your agent write small checks into your
 repo, `scripts/record-check.py` (a Python linter with no dependencies), a pre-commit hook
 in `.githooks/`, and `scripts/agenda.py` if the record has deadlines, and all of them run
-only locally. At the end it creates a GitHub repo with your own `gh` login, **private
+only locally. You can read each one before it is committed. At the end it creates a GitHub repo with your own `gh` login, **private
 unless you explicitly ask for public**, and pushes to it. Your record stays in your own repo, under
 your control. The perimeter step exists so you decide what may be committed before the
 first commit.
@@ -259,8 +274,8 @@ first commit.
   clone has no perimeter check until you run `git config core.hooksPath .githooks`. Check
   with `git config core.hooksPath`; it should print `.githooks`. The hook also needs its
   executable bit (`chmod +x .githooks/pre-commit`).
-- **The hook fails with a syntax error.** Its path and content patterns were left as
-  placeholders. Re-run the bootstrap's perimeter question, or fill them in by hand.
+- **The hook fails on every commit with a placeholder message or a syntax error.** Its
+  path or content patterns were left as placeholders. Re-run the bootstrap's perimeter question, or fill them in by hand.
 - **`record-check.py` reports a missing anchor.** The agents file must carry both anchors
   the bootstrap wrote. Restore them rather than deleting the check.
 - **An update didn't arrive.** Claude Code updates only when the plugin's `version`

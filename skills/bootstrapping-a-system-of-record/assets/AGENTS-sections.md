@@ -104,6 +104,11 @@ the normal state, not a defect. The health check:
 python3 scripts/record-check.py --list
 ```
 
+This repo's checks (`scripts/record-check.py`, `.githooks/pre-commit`, and
+`scripts/agenda.py` if present) were written from the `checks.md` specification
+in the system-of-record plugin, version <PLUGIN VERSION>. Before changing one,
+re-run that file's acceptance tests for it, and change the check, not the tests.
+
 <IF THE RECORD IS KEPT IN ANOTHER LANGUAGE: declare its two marker words here and
 pass them to the checker with --inferred-marker and --unknown-marker. Always
 exactly two; never a third.>

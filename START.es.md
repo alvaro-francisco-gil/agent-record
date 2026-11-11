@@ -29,7 +29,7 @@ pregúntame antes de hacer cualquier cosa que no se pueda deshacer. Háblame en 
    que lo ejecute yo: `gh auth login`. Nunca me pidas una contraseña ni un token.
 3. Instala el plugin que sabe construir esto:
    claude plugin install system-of-record --marketplace alvaro-francisco-gil/agent-record
-   (versión 1.3.0 o posterior). Si sus skills no aparecen, dime que reinicie Claude y que
+   (versión 1.4.0 o posterior). Si sus skills no aparecen, dime que reinicie Claude y que
    vuelva a pegar este mensaje; seguirás donde lo dejamos.
 4. Después usa su skill bootstrapping-a-system-of-record, en una carpeta nueva dentro de
    mi carpeta personal con el nombre de lo que vamos a registrar. Síguela al pie de la
