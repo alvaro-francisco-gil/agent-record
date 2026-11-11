@@ -1,7 +1,8 @@
 # Ship the plugin without scripts, so the Anthropic directory can list it
 
 **Priority:** high — System of Record cannot be listed in Anthropic's plugin directory until no script is left in this repo
-**Next:** write `assets/checks.md` (below), then remove the scripts, rewrite the gate, bump to 1.4.0 and push
+**Gate:** decision:Álvaro reviews the unpushed 1.4.0 commits on `main` before they are pushed (recheck 2026-11-13)
+**Next:** push `main`, watch the CI run, then after ~6 hours read System of Record's page at claude.ai/directory/manage and record the outcome in the workspace plan
 
 **Goal:** One repo and one plugin, with no file in it that the directory refuses. The setup
 skill keeps installing the same three checks, but the adopter's agent writes them from a
@@ -115,3 +116,21 @@ version to go to a person for review. Record the outcome in the workspace plan a
 - An agent bootstrapping a scratch repo from the new skill writes the three checks, runs
   every acceptance test in `checks.md`, and they pass.
 - The directory's check of 1.4.0 passes Directory policy.
+
+## Handoff
+
+Built on 2026-11-11, committed to `main`, **not pushed** (pushing triggers the directory's
+scan, and Álvaro reviews first). Done: `assets/checks.md` written from the scripts at
+`158ed7a` and their tests (every hardening comment is a numbered test); the scripts,
+`scripts/validate.py` and `tests/` removed; the skill, README, START pages and AGENTS.md
+updated; the gate is now short shell steps in `.github/workflows/validate.yml`, which also
+absorbed `gemini-imports-check` and `version-bump-check` (both retired);
+`ci-portability-matrix` retired, since the assets it tested no longer exist; version 1.4.0.
+
+A blind dry run (an agent that read only `checks.md` and `obligations.md`) wrote the three
+checks in a scratch repo and passed every test; its ambiguity findings were folded into
+`checks.md` and re-run. Not yet run: the hook's tests under a non-bash `sh` (dash, BSD sh),
+and the CI frontmatter step, which uses `yq` (preinstalled on GitHub's Ubuntu runners, not
+on this machine). The first CI run after the push is the first time those lines run.
+
+Retire this plan when the directory has accepted 1.4.0 past "Directory policy".
