@@ -26,7 +26,7 @@ jobs:
       - name: Text is UTF-8 with no NUL bytes
         run: |
           git ls-files -z -- '*.md' '*.txt' '*.json' '*.yml' '*.yaml' LICENSE .gitignore | xargs -0 iconv -f UTF-8 -t UTF-8 > /dev/null
-          ! git ls-files -z -- '*.md' '*.txt' '*.json' '*.yml' '*.yaml' LICENSE .gitignore | xargs -0 grep -lP '\x00'
+          ! git ls-files -z -- '*.md' '*.txt' '*.json' '*.yml' '*.yaml' LICENSE .gitignore | xargs -0 grep -laP '\x00'
 
       - name: Every JSON file parses
         run: |
